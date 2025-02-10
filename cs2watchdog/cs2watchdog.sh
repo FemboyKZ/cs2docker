@@ -28,8 +28,8 @@ update_cs2() {
 }
 
 main() {
-    for (( first = 1;; first = 0 )); do
-        [[ first -eq 0 ]] && sleep 10
+    for (( first=1;; first=0 )); do
+        [ $first -eq 0 ] && sleep 10
         
         # The temporary directory might exist if update_cs2 fails
         rm -rf "/repo/tmp" || continue
