@@ -13,5 +13,4 @@ RUN chmod 555 cs2server.sh
 
 VOLUME ["/repo"]
 
-ENTRYPOINT ["tail", "-f", "/dev/null"]
-#ENTRYPOINT ["/app/cs2server.sh"]
+ENTRYPOINT ["/app/cs2server.sh"]
