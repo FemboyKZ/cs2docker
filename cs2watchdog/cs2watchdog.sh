@@ -11,11 +11,10 @@ fetch_latest_cs2_version() {
 
 update_cs2() {
     # Download CS2 to /repo/install
-    steamcmd +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +@bMetricsEnabled 0 +force_install_dir "/repo/install" +login anonymous +app_update 730 +quit > /dev/null || return 1
+    HOME="/repo/steamcmd" /repo/steamcmd/steamcmd.sh +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +@bMetricsEnabled 0 +force_install_dir "/repo/install" +login anonymous +app_update 730 +quit 1>&2 || return 1
     
     # Check which version we just installed
     local installed_version; installed_version=$(grep PatchVersion= "/repo/install/game/csgo/steam.inf" | tr -cd '0-9') || return 1
-    echo "$installed_version" 
 
     # We already have this version
     [ -d "/repo/builds/$installed_version" ] && return 1
@@ -44,5 +43,13 @@ main() {
     done
 }
 
+# Download SteamCMD
+if [ ! -d "/repo/steamcmd" ]; then
+    mkdir -p "/tmp/steamcmd" || exit 1
+    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - -C "/tmp/steamcmd" || exit 1
+    mv "/tmp/steamcmd" "/repo/steamcmd" || exit 1
+fi
+
 mkdir -p "/repo/builds" || exit 1
+
 main
