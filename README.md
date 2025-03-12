@@ -29,8 +29,9 @@ It's recommended you edit [the example in this README](#runsh-1).
 
 #### Environment variables:
 
-- `$build_ver` - The Counter-Strike 2 build version that the server should use. 
-- `$build_dir` - The directory where the build of Counter-Strike 2 is installed. 
+- `$build_ver` - The version number of Counter-Strike 2 that the server should use. 
+- `$build_dir` - The directory where that version of Counter-Strike 2 is installed. 
+- `$server_dir` - The directory where you should build the server. 
 - Everything passed to Docker.
 
 ## Auto restart on update
