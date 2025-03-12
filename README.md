@@ -1,8 +1,25 @@
 # CS2 Docker
 
-Work in progress.
+Deduplicated Counter-Strike 2 server hosting in Docker.  
 
-## docker-compose.yml
+## Auto restart on update
+
+Counter-Strike 2 has no built in **-autoupdate** functionality to automatically restart the server when a new update is detected. 
+You need to install my [Auto Restart](https://github.com/Szwagi/cs2docker-autorestart/) plugin for servers to update properly without manual intervention.
+
+## Binding IP and port
+
+Counter-Strike 2's built in `ip` and `port` convars/options are broken. Use docker IP/port binding instead.
+
+```
+ports:
+  - "172.16.16.16:27020:27015:/udp"
+  - "172.16.16.16:27020:27015:/tcp"
+```
+
+## Example
+
+### docker-compose.yml
 
 ```yml
 services:
@@ -25,6 +42,8 @@ services:
       - GSLT=
     volumes:
       - ./watchdog:/watchdog
+      - ./layers:/layers
+      - ./mounts:/mounts
       - ./run.sh:/user/run.sh
   cs2server2:
     image: cs2server
@@ -38,10 +57,12 @@ services:
       - GSLT=
     volumes:
       - ./watchdog:/watchdog
+      - ./layers:/layers
+      - ./mounts:/mounts
       - ./run.sh:/user/run.sh
 ```
 
-## Example of a custom run.sh
+## run.&#8203;sh
 
 ```bash
 #!/bin/bash
@@ -66,10 +87,10 @@ sed -i '0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/' "$server_d
 # Install CS2KZ.
 tar -xf "/layers/cs2kz.tar.gz" -C "$server_dir/game/csgo"
 
-# Link workshop volume.
+# Mount workshop folder.
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
-ln -s "/volumes/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
-# Run the server.
-"$server_dir/game/bin/linuxsteamrt64/cs2" -dedicated -usercon +sv_setsteamaccount "$GSLT" +map de_dust2
+# Run the server
+"$server_dir/game/bin/linuxsteamrt64/cs2" -dedicated -usercon +sv_setsteamaccount "$GSLT" +map de_dust2 +host_workshop_map 3070194623
 ```
