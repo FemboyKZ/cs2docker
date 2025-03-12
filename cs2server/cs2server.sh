@@ -9,17 +9,18 @@ fetch_latest_cs2_version() {
 
 # Fix steamclient.so ... Why is this such a mess?
 mkdir -p "/tmp/cs2home/.steam/sdk64"
-cp "/repo/steamcmd/linux64/steamclient.so" "/tmp/cs2home/.steam/sdk64/"
+cp "/watchdog/steamcmd/linux64/steamclient.so" "/tmp/cs2home/.steam/sdk64/"
 
-mkdir -p "/tmp/cs2server"
-cd "/tmp/cs2server"
+server_dir="/tmp/cs2server"
+mkdir -p "$server_dir"
 
 for (( first=1;; first=0 )); do
     [ $first -eq 0 ] && sleep 10
 
-    latest_version="$(fetch_latest_cs2_version)" || continue
-    [ -d "/repo/builds/$latest_version" ] || continue
+    build_ver="$(fetch_latest_cs2_version)" || continue
+    build_dir="/watchdog/builds/$build_ver"
+    [ -d "$build_dir" ] || continue
 
-    flock -ns "/repo/builds/$latest_version/.lockfile" --command "cp -rs \"/repo/builds/$latest_version\"/* . && rm ./game/bin/linuxsteamrt64/cs2 && cp \"/repo/builds/$latest_version/game/bin/linuxsteamrt64/cs2\" ./game/bin/linuxsteamrt64/ && HOME=\"/tmp/cs2home\" ./game/bin/linuxsteamrt64/cs2 -dedicated +map de_dust2" || continue
-    rm -rf "./*"
+    rm -rf "$server_dir"/*
+    flock -ns "$build_dir/.lockfile" --command "HOME=\"/tmp/cs2home\" build_ver=\"$build_ver\" build_dir=\"$build_dir\" server_dir=\"$server_dir\" /user/run.sh"
 done

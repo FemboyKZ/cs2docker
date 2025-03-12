@@ -7,10 +7,12 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /user
+COPY run.sh .
+RUN chmod 555 run.sh
+
 WORKDIR /app
 COPY cs2server.sh .
 RUN chmod 555 cs2server.sh
-
-VOLUME ["/repo"]
 
 ENTRYPOINT ["/app/cs2server.sh"]

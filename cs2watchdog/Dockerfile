@@ -12,6 +12,4 @@ WORKDIR /app
 COPY cs2watchdog.sh .
 RUN chmod 555 cs2watchdog.sh
 
-VOLUME ["/repo"]
-
 ENTRYPOINT ["/app/cs2watchdog.sh"]
