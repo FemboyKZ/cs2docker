@@ -18,7 +18,7 @@ for (( first=1;; first=0 )); do
     [ $first -eq 0 ] && sleep 10
 
     build_ver="$(fetch_latest_cs2_version)" || continue
-    build_dir="/watchdog/builds/$build_ver"
+    build_dir="/watchdog/cs2/builds/$build_ver"
     [ -d "$build_dir" ] || continue
 
     rm -rf "$server_dir"/*
