@@ -1,17 +1,48 @@
 # CS2 Docker
 
-Deduplicated Counter-Strike 2 server hosting in Docker.  
+Deduplicated Counter-Strike 2 server hosting in Docker.
+
+## Watchdog
+
+The watchdog image keeps Counter-Strike 2 up to date.
+
+#### Volumes:
+
+- `/watchdog` - The directory where Steam and Counter-Strike 2 will be installed to.
+
+## Server
+
+The server image runs an instance of a Counter-Strike 2 server. You can run as many as your hardware can handle.
+
+#### Volumes:
+
+- `/watchdog` - Has to be the same as the one passed to the watchdog.
+- `/user/run.sh` - The script that sets up and runs the server.
+
+#### Volumes convention (not used by cs2docker itself, but recommended calling convention):
+- `/layers` - Plugin binaries that you copy-paste from `run.sh` (CounterStrikeSharp, RockTheVote, etc.).
+- `/mounts` - Files and directories that you symlink from `run.sh` (maplist.txt, log directory, workshop directory, etc.).
+
+## run.&#8203;sh
+
+It's recommended you edit the example in this README.
+
+#### Environment variables:
+
+- `$build_ver` - The Counter-Strike 2 build version that the server should use. 
+- `$build_dir` - The directory where the build of Counter-Strike 2 is installed. 
+- Everything passed to Docker.
 
 ## Auto restart on update
 
-Counter-Strike 2 has no built in **-autoupdate** functionality to automatically restart the server when a new update is detected. 
-You need to install my [Auto Restart](https://github.com/Szwagi/cs2docker-autorestart/) plugin for servers to update properly without manual intervention.
+Counter-Strike 2 has no built-in `-autoupdate` functionality to automatically restart the server when a new update is detected.
+You need to install my [AutoRestart](https://github.com/Szwagi/cs2docker-autorestart/) plugin for servers to restart on update without manual intervention.
 
 ## Binding IP and port
 
-Counter-Strike 2's built in `ip` and `port` convars/options are broken. Use docker IP/port binding instead.
+Counter-Strike 2's built in `ip` and `port` launch options are broken. Use Docker IP/port binding instead.
 
-```
+```yml
 ports:
   - "172.16.16.16:27020:27015:/udp"
   - "172.16.16.16:27020:27015:/tcp"
@@ -19,7 +50,7 @@ ports:
 
 ## Example
 
-### docker-compose.yml
+#### docker-compose.yml
 
 ```yml
 services:
@@ -62,7 +93,7 @@ services:
       - ./run.sh:/user/run.sh
 ```
 
-## run.&#8203;sh
+#### run.&#8203;sh
 
 ```bash
 #!/bin/bash
