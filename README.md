@@ -19,13 +19,13 @@ The server image runs an instance of a Counter-Strike 2 server. You can run as m
 - `/watchdog` - Has to be the same as the one passed to the watchdog.
 - `/user/run.sh` - The script that sets up and runs the server.
 
-#### Volumes convention (not used by cs2docker itself, but recommended calling convention):
+#### Volumes convention (not used by cs2docker itself, but it's the recommended calling convention):
 - `/layers` - Plugin binaries that you copy-paste from `run.sh` (CounterStrikeSharp, RockTheVote, etc.).
-- `/mounts` - Files and directories that you symlink from `run.sh` (maplist.txt, log directory, workshop directory, etc.).
+- `/mounts` - Files and directories that you symlink from `run.sh` (maplist.txt, log directories, etc.).
 
 ## run.&#8203;sh
 
-It's recommended you edit the example in this README.
+It's recommended you edit [the example in this README](#runsh-1).
 
 #### Environment variables:
 
