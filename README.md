@@ -1,6 +1,12 @@
-# CS2 Docker
+# FKZ Docker
 
 Deduplicated Counter-Strike 2 server hosting in Docker.
+
+FKZ fork, wack so I recommend using Szwagi's original repo.
+
+## FKZ whitelistdog
+
+The watchdog image keeps fkz whitelist up to date.
 
 ## Watchdog
 
@@ -20,6 +26,7 @@ The server image runs an instance of a Counter-Strike 2 server. You can run as m
 - `/user/run.sh` - The script that sets up and runs the server.
 
 #### Volumes convention (not used by cs2docker itself, but it's the recommended naming convention):
+
 - `/layers` - Plugin binaries that you copy-paste from `run.sh` (CounterStrikeSharp, RockTheVote, etc.).
 - `/mounts` - Files and directories that you symlink from `run.sh` (maplist.txt, log directories, etc.).
 
@@ -29,9 +36,9 @@ It's recommended you edit [the example in this README](#runsh-1).
 
 #### Environment variables:
 
-- `$build_ver` - The version number of Counter-Strike 2 that the server should use. 
-- `$build_dir` - The directory where that version of Counter-Strike 2 is installed. 
-- `$server_dir` - The directory where you should build the server. 
+- `$build_ver` - The version number of Counter-Strike 2 that the server should use.
+- `$build_dir` - The directory where that version of Counter-Strike 2 is installed.
+- `$server_dir` - The directory where you should build the server.
 - Everything passed to Docker.
 
 ## Auto restart on update
