@@ -2,6 +2,8 @@
 
 set -ueEo pipefail
 
+echo "Build version: $build_ver"
+
 # Symlink all the server files.
 cp -rs "$build_dir"/* "$server_dir"
 
@@ -9,5 +11,93 @@ cp -rs "$build_dir"/* "$server_dir"
 rm "$server_dir/game/bin/linuxsteamrt64/cs2"
 cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64/cs2"
 
+# Create server cfg
+cat <<EOF >> "$server_dir/game/csgo/cfg/server.cfg"
+hostname "$NAME"
+hostip "$IP"
+hostport "$PORT"
+sv_password "$PASSWORD"
+rcon_password "$RCON_PASSWORD"
+sv_hibernate_when_empty false
+sv_hibernate_postgame_delay 0
+sv_tags "$TAGS"
+exec fkz-settings.cfg
+exec fkz-logs.cfg
+// exec fkz-tv.cfg
+exec fkz-print.cfg
+mp_restartgame 1
+EOF
+
+# Make sure necessary directories exist
+mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
+
+# Install layers
+install_layer() {
+    cp -rf "$root/layers/$1"/* "$server_dir/game/csgo"
+}
+
+install_layer "mm"
+rm "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+sed -i '0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/' "$server_dir/game/csgo/gameinfo.gi"
+
+install_layer "accel"
+rm "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
+
+install_layer "kz"
+rm "$server_dir/game/csgo/cfg/cs2kz-server-config.cfg"
+
+install_layer "cssharp"
+
+# install_layer "accelcss" # only debug
+
+install_layer "mam"
+rm "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
+
+install_layer "sqlmm"
+
+install_layer "ccvar"
+
+install_layer "cleaner"
+rm "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
+
+install_layer "listfix"
+
+install_layer "banfix"
+
+install_layer "configs"
+
+# I like to use metaplugins.ini (created in cs2server/configs.sh) to load plugins, so remove all other vdf files to avoid confusion.
+find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
+
+# Create metaplugins.ini for metamod
+cat <<EOF > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+;ACCEL addons/AcceleratorCS2/AcceleratorCS2
+;ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS
+KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
+CLEANER addons/cleanercs2/cleanercs2
+SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
+CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
+MAM addons/multiaddonmanager/bin/multiaddonmanager
+CCVAR addons/client_cvar_value/client_cvar_value
+LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
+;VOICEFIX addons/CS2VoiceFix/CS2VoiceFix
+;GOTVFIX addons/GOTVCrashFix/GOTVCrashFix
+BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
+;MENUEXPORT addons/MenusExport/bin/MenusExport
+EOF
+
+# check if server is whitelist only
+if [[ "${WHITELIST,,}" == "true" || "$WHITELIST" == "1" ]]; then
+    cp "$root/watchdog/fkz/whitelist.txt" "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"
+fi
+
+# Create symlinks for mounts
+install_mount() {
+    rm -rf "$server_dir/game/csgo/$2"
+    ln -s "$root/mounts/$1" "$server_dir/game/csgo/$2"
+}
+
+install_mount "logs" "logs"
+
 # Run the server.
-"$server_dir/game/bin/linuxsteamrt64/cs2" -dedicated -usercon +sv_setsteamaccount "$GSLT" +map de_dust2
+"$server_dir/game/bin/linuxsteamrt64/cs2" -dedicated -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nobreakpad -nohltv -noautoupdate
