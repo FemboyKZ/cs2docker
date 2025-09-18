@@ -8,7 +8,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY cs2server.sh /app/cs2server.sh
+COPY updatewl.sh /user/updatewl.sh
 COPY run.sh /user/run.sh
-RUN chmod 555 /app/cs2server.sh /user/run.sh
+RUN chmod 555 /app/cs2server.sh /user/updatewl.sh /user/run.sh
 
 ENTRYPOINT ["/app/cs2server.sh"]

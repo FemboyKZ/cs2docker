@@ -4,10 +4,6 @@ Deduplicated Counter-Strike 2 server hosting in Docker.
 
 FKZ fork, wack so I recommend using Szwagi's original repo.
 
-## FKZ whitelistdog
-
-The watchdog image keeps fkz whitelist up to date.
-
 ## Watchdog
 
 The watchdog image keeps Counter-Strike 2 up to date.
