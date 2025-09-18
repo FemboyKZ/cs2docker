@@ -70,8 +70,13 @@ install_layer "configs"
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 # Create metaplugins.ini for metamod
-cat <<EOF > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-;ACCEL addons/AcceleratorCS2/AcceleratorCS2
+if [[ "${ACCEL,,}" == "true" || "${ACCEL,,}" == "yes" || "$ACCEL" == "1" ]]; then
+    echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+else
+    echo ";ACCEL addons/AcceleratorCS2/AcceleratorCS2" >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+fi
+
+cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 ;ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 CLEANER addons/cleanercs2/cleanercs2
@@ -86,11 +91,6 @@ BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 ;MENUEXPORT addons/MenusExport/bin/MenusExport
 EOF
 
-# check if server is whitelist only
-if [[ "${WHITELIST,,}" == "true" || "$WHITELIST" == "1" ]]; then
-    cp "$root/watchdog/fkz/whitelist.txt" "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"
-fi
-
 # Create symlinks for mounts
 install_mount() {
     rm -rf "$server_dir/game/csgo/$2"
@@ -98,6 +98,12 @@ install_mount() {
 }
 
 install_mount "logs" "logs"
+
+# Run whitelist updater in background if whitelist is enabled
+if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
+    cp "/watchdog/fkz/whitelist.txt" "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"
+    /user/updatewl.sh &
+fi
 
 # Run the server.
 "$server_dir/game/bin/linuxsteamrt64/cs2" -dedicated -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nobreakpad -nohltv -noautoupdate
