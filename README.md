@@ -79,7 +79,7 @@ services:
       - ./watchdog:/watchdog
       - ./layers:/layers
       - ./mounts:/mounts
-      - ./run.sh:/user/run.sh
+      - ./user:/user:ro
   cs2server2:
     image: cs2server
     container_name: cs2server2
@@ -94,7 +94,7 @@ services:
       - ./watchdog:/watchdog
       - ./layers:/layers
       - ./mounts:/mounts
-      - ./run.sh:/user/run.sh
+      - ./user:/user:ro
 ```
 
 #### run.&#8203;sh
