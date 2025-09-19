@@ -1,0 +1,65 @@
+x-default-env: &default-env
+  MAP: de_nuke
+  WS_MAP: 3121168339 # kz_grotto
+  WS_APIKEY: # https://steamcommunity.com/dev/apikey
+  GL_DB_NAME: # global database name
+  DC_ADMIN_WEBHOOK:
+  DC_ALT_WEBHOOK:
+  DC_STATUS_WEBHOOK:
+  DC_CHAT_WEBHOOK:
+  DC_CONNECT_WEBHOOK:
+  DC_STATUS_MSG_WEBHOOK:
+
+services:
+  cs2watchdog:
+    image: cs2watchdog
+    container_name: cs2watchdog
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - ./watchdog:/watchdog
+    tty: true
+    stdin_open: true
+  cs2server1:
+    image: cs2server
+    container_name: cs2server
+    restart: unless-stopped
+    user: 1000:1000
+    tty: true
+    stdin_open: true
+    logging:
+      driver: json-file
+      options:
+        max-file: "3"
+    ports:
+      - 27015:27015/udp
+      - 27015:27015/tcp
+    environment:
+      <<: *default-env
+      ID: 1 # unique ID for this server, used for mount folders
+      HOSTNAME: cs2server
+      GSLT: # https://steamcommunity.com/dev/managegameservers
+      IP: 0.0.0.0
+      IP_DOMAIN: somedomain.com
+      PORT: 27015
+      PASSWORD:
+      RCON_PASSWORD:
+      TAGS:
+      DB_NAME:
+      DB_HOST:
+      DB_PORT: 3306
+      DB_USER:
+      DB_PASS:
+      WHITELIST: 0
+      ACCEL: 0
+      CS2KZ_APIKEY:
+      SVLIST_APIKEY:
+      DC_CHAT_THREAD:
+      DC_CONNECT_THREAD:
+      DC_STATUS_MSG_ID:
+      SKINSITE_URL:
+    volumes:
+      - ./watchdog:/watchdog
+      - ./layers:/layers:ro
+      - ./mounts:/mounts
+      - ./user:/user:ro
