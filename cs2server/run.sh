@@ -17,4 +17,4 @@ mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
 
 
 # Run the server.
-"$server_dir/game/bin/linuxsteamrt64/cs2" -dedicated -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
+"$server_dir/game/cs2.sh" -dedicated -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
