@@ -66,6 +66,10 @@ install_layer "banfix"
 
 # install_layer "cssplugins"
 
+# install_layer "weaponpaints"
+
+install_layer "maplist"
+
 install_layer "configs"
 
 # cs2kz cfg (STUPID TXT FILE)
@@ -82,7 +86,7 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
 
-jq ". + {WebHookURL: \"$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD\"}" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
+jq ". + {Discord_WebHook: \"$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD\"}" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
 mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
 
 jq ". + {DiscordWebhook: \"$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD\"}" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
@@ -99,6 +103,12 @@ mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.js
 
 jq ". + {ApiKey: \"$WS_APIKEY\"}" "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
 mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
+
+jq ". + {\"DatabaseUser\": \"$DB_USER\", \"DatabasePassword\": \"$DB_PASS\", \"DatabaseName\": \"$GL_DB_NAME\", \"DatabaseHost\": \"$DB_HOST\"}" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" > "/tmp/Config.json"
+mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
+
+jq ". + {\"DatabaseUser\": \"$DB_USER\", \"DatabasePassword\": \"$DB_PASS\", \"DatabaseName\": \"$GL_DB_NAME\", \"DatabaseHost\": \"$DB_HOST\", \"Discord.DiscordLogWebhook\": \"$DC_ADMIN_WEBHOOK\"}" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
+mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
 
 # I like to use metaplugins.ini (created in cs2server/configs.sh) to load plugins, so remove all other vdf files to avoid confusion.
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
@@ -127,7 +137,7 @@ EOF
 
 # Create folders for mounts if not existing
 if [[ ! -d "/mounts/$ID" ]]; then
-    mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_logger/logs"
+    mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps"
 fi
 
 install_mount() {
@@ -138,6 +148,7 @@ install_mount() {
 install_mount "logs" "logs"
 install_mount "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
 install_mount "addons/counterstrikesharp/plugins/Chat_logger/logs" "addons/counterstrikesharp/plugins/Chat_logger/logs"
+install_mount "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
 
 # Run whitelist updater in background if whitelist is enabled
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
