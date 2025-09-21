@@ -95,7 +95,11 @@ jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
 mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
 
 jq --arg webhook "$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD" \
-   '.DiscordWebhook = $webhook' \
+   --arg host "$DB_HOST" \
+   --arg user "$DB_USER" \
+   --arg pass "$DB_PASS" \
+   --arg name "$DB_NAME" \
+   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .DiscordWebhook = $webhook' \
    "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
 mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
 
@@ -168,7 +172,7 @@ EOF
 
 # Create folders for mounts if not existing
 if [[ ! -d "/mounts/$ID" ]]; then
-    mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/kzdemos"
+    mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/kzdemos"
 fi
 
 install_mount() {
@@ -178,7 +182,6 @@ install_mount() {
 
 install_mount "logs" "logs"
 install_mount "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
-install_mount "addons/counterstrikesharp/plugins/Chat_logger/logs" "addons/counterstrikesharp/plugins/Chat_logger/logs"
 install_mount "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "kzdemos" "kzdemos"
 
@@ -186,10 +189,11 @@ install_mount "kzdemos" "kzdemos"
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
     install_layer "whitelist"
     /user/updatewl.sh &
-else if [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1" ]]; then
-    continue;
+elif [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1" ]]; then
+    echo "" # do nothing
 else
     install_layer "ads"
+    install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 fi
 
 # Run the server.
