@@ -63,13 +63,17 @@ install_layer "listfix"
 
 install_layer "banfix"
 
-install_layer "cssplugins"
+if [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1" ]]; then
+    install_layer "maptest"
+else
+    install_layer "cssplugins"
 
-install_layer "weaponpaints"
+    install_layer "weaponpaints"
 
-install_layer "maplist"
+    install_layer "maplist"
 
-install_layer "configs"
+    install_layer "configs"
+fi
 
 # cs2kz cfg (STUPID TXT FILE)
 modify_config() {
@@ -182,6 +186,8 @@ install_mount "kzdemos" "kzdemos"
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
     install_layer "whitelist"
     /user/updatewl.sh &
+else if [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1" ]]; then
+    continue;
 else
     install_layer "ads"
 fi
