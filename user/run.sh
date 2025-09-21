@@ -79,7 +79,8 @@ fi
 modify_config() {
     local key="$2"
     local value="$3"
-    sed -i "s/\(\"$key\"[[:space:]]*\)\"[^\"]*\"/\1\"$value\"/" "$1"
+    local escaped_value=$(printf '%s\n' "$value" | sed -e 's/[\/&]/\\&/g')
+    sed -i "s#\(\"$key\"[[:space:]]*\)\"[^\"]*\"#\1\"$escaped_value\"#" "$1"
 }
 
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "apiKey" "$CS2KZ_APIKEY"
