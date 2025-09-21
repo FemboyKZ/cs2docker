@@ -42,7 +42,7 @@ services:
       IP_DOMAIN: somedomain.com
       PORT: 27015
       RCON_PASSWORD: changeme
-      REGION: eu
+      REGION: EU # server region code (EU, NA)
       TAGS: eu,public,cs2 # comma separated list of tags
       DB_NAME: cs2server1 # database name for this server
       DB_HOST: localhost

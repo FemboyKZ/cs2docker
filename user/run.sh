@@ -12,10 +12,11 @@ rm "$server_dir/game/bin/linuxsteamrt64/cs2"
 cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64/cs2"
 
 # Create server cfg
+rm -f "$server_dir/game/csgo/cfg/server.cfg"
 cat <<EOF > "$server_dir/game/csgo/cfg/server.cfg"
 hostname "$HOSTNAME"
 // hostip 0.0.0.0
-hostport "$PORT"
+// hostport "$PORT"
 sv_password ""
 rcon_password "$RCON_PASSWORD"
 sv_hibernate_when_empty false
@@ -194,7 +195,7 @@ elif [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1"
     echo "" # do nothing
 else
     install_layer "ads"
-    jq --arg region "$REGION" '.region = $region | .region |= uppercase' \
+    jq --arg region "$REGION" \
         '.DefaultLang = $region' \
         "$cssharp_cfg_dir/Advertisement/Advertisement.json" > "/tmp/Advertisement.json"
     mv "/tmp/Advertisement.json" "$cssharp_cfg_dir/Advertisement/Advertisement.json"
