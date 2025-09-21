@@ -103,7 +103,7 @@ mv "/tmp/CS2ServerList.json" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"
 jq --arg host "$DB_HOST:$DB_PORT" \
    --arg user "$DB_USER" \
    --arg pass "$DB_PASS" \
-   --arg name "$DB_NAME" \
+   --arg name "$GL_DB_NAME" \
    '.DatabaseParams.Host = $host | .DatabaseParams.User = $user | .DatabaseParams.Password = $pass | .DatabaseParams.Name = $name' \
    "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" > "/tmp/PlayerSettings.json"
 mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
@@ -164,7 +164,7 @@ EOF
 
 # Create folders for mounts if not existing
 if [[ ! -d "/mounts/$ID" ]]; then
-    mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps"
+    mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/kzdemos"
 fi
 
 install_mount() {
@@ -176,11 +176,14 @@ install_mount "logs" "logs"
 install_mount "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
 install_mount "addons/counterstrikesharp/plugins/Chat_logger/logs" "addons/counterstrikesharp/plugins/Chat_logger/logs"
 install_mount "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
+install_mount "kzdemos" "kzdemos"
 
 # Run whitelist updater in background if whitelist is enabled
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
     install_layer "whitelist"
     /user/updatewl.sh &
+else
+    install_layer "ads"
 fi
 
 # Run the server.
