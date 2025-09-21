@@ -3,12 +3,11 @@ x-default-env: &default-env
   WS_MAP: 3121168339 # kz_grotto
   WS_APIKEY: # https://steamcommunity.com/dev/apikey
   GL_DB_NAME: # global database name
-  DC_ADMIN_WEBHOOK:
-  DC_ALT_WEBHOOK:
-  DC_STATUS_WEBHOOK:
-  DC_CHAT_WEBHOOK:
-  DC_CONNECT_WEBHOOK:
-  DC_STATUS_MSG_WEBHOOK:
+  DC_ADMIN_WEBHOOK: # Discord webhook for admin alerts
+  DC_ALT_WEBHOOK: # Discord webhook for alt account alerts
+  DC_STATUS_WEBHOOK: # Discord webhook for status alerts
+  DC_CHAT_WEBHOOK: # Discord webhook for chat messages
+  DC_CONNECT_WEBHOOK: # Discord webhook for connect messages
 
 services:
   cs2watchdog:
@@ -16,13 +15,13 @@ services:
     container_name: cs2watchdog
     restart: unless-stopped
     user: 1000:1000
-    volumes:
-      - ./watchdog:/watchdog
     tty: true
     stdin_open: true
+    volumes:
+      - ./watchdog:/watchdog
   cs2server1:
     image: cs2server
-    container_name: cs2server
+    container_name: cs2server1
     restart: unless-stopped
     user: 1000:1000
     tty: true
@@ -36,28 +35,28 @@ services:
       - 27015:27015/tcp
     environment:
       <<: *default-env
-      ID: 1 # unique ID for this server, used for mount folders
+      ID: cs2server1 # unique ID for this server, used for mount folders
       HOSTNAME: cs2server
       GSLT: # https://steamcommunity.com/dev/managegameservers
       IP: 0.0.0.0
       IP_DOMAIN: somedomain.com
       PORT: 27015
-      PASSWORD:
-      RCON_PASSWORD:
-      TAGS:
-      DB_NAME:
-      DB_HOST:
+      RCON_PASSWORD: changeme
+      REGION: eu
+      TAGS: eu,public,cs2 # comma separated list of tags
+      DB_NAME: cs2server1 # database name for this server
+      DB_HOST: localhost
       DB_PORT: 3306
-      DB_USER:
-      DB_PASS:
-      WHITELIST: 0
-      ACCEL: 0
-      CS2KZ_APIKEY:
-      SVLIST_APIKEY:
-      DC_CHAT_THREAD:
-      DC_CONNECT_THREAD:
-      DC_STATUS_MSG_ID:
-      SKINSITE_URL:
+      DB_USER: root
+      DB_PASS: root
+      MAPTEST: false # enable map testing mode (true/false)
+      WHITELIST: false  # enable whitelist-only mode (true/false)
+      ACCEL: false # enable accelerator for debugging (true/false)
+      CS2KZ_APIKEY: 0 # cs2kz apikey
+      SVLIST_APIKEY: 0 # cs2serverlist.com api key for this server
+      DC_CHAT_THREAD: 0 # Discord thread ID for chat messages
+      DC_CONNECT_THREAD: 0 # Discord thread ID for connect messages
+      SKINSITE_URL: somedomain.com/skins/cs2server1 # URL to skin site for this server
     volumes:
       - ./watchdog:/watchdog
       - ./layers:/layers:ro
