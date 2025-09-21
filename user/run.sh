@@ -65,7 +65,7 @@ install_layer "banfix"
 
 # install_layer "cssplugins"
 
-# install_layer "weaponpaints"
+install_layer "weaponpaints"
 
 install_layer "maplist"
 
@@ -85,28 +85,58 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
 
-jq ". + {Discord_WebHook: \"$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD\"}" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
+jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
+   '.Discord_WebHook = $webhook' \
+   "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
 mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
 
-jq ". + {DiscordWebhook: \"$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD\"}" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
+jq --arg webhook "$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD" \
+   '.DiscordWebhook = $webhook' \
+   "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
 mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
 
-jq ". + {\"server-api-key\": \"$SVLIST_APIKEY\"}" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" > "/tmp/CS2ServerList.json"
+jq --arg apikey "$SVLIST_APIKEY" \
+   '."server-api-key" = $apikey' \
+   "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" > "/tmp/CS2ServerList.json"
 mv "/tmp/CS2ServerList.json" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"
 
-jq ". + {\"DatabaseParams.Host\": \"$DB_HOST:$DB_PORT\", \"DatabaseParams.User\": \"$DB_USER\", \"DatabaseParams.Password\": \"$DB_PASS\", \"DatabaseParams.Name\": \"$DB_NAME\"}" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" > "/tmp/PlayerSettings.json"
+jq --arg host "$DB_HOST:$DB_PORT" \
+   --arg user "$DB_USER" \
+   --arg pass "$DB_PASS" \
+   --arg name "$DB_NAME" \
+   '.DatabaseParams.Host = $host | .DatabaseParams.User = $user | .DatabaseParams.Password = $pass | .DatabaseParams.Name = $name' \
+   "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" > "/tmp/PlayerSettings.json"
 mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
 
-jq ". + {ApiKey: \"$WS_APIKEY\"}" "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
+jq --arg apikey "$WS_APIKEY" \
+   '.ApiKey = $apikey' \
+   "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
 mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
 
-jq ". + {\"DatabaseUser\": \"$DB_USER\", \"DatabasePassword\": \"$DB_PASS\", \"DatabaseName\": \"$GL_DB_NAME\", \"DatabaseHost\": \"$DB_HOST\"}" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" > "/tmp/Config.json"
+jq --arg host "$DB_HOST" \
+   --arg user "$DB_USER" \
+   --arg pass "$DB_PASS" \
+   --arg name "$GL_DB_NAME" \
+   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name' \
+   "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" > "/tmp/Config.json"
 mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
 
-jq ". + {\"DatabaseUser\": \"$DB_USER\", \"DatabasePassword\": \"$DB_PASS\", \"DatabaseName\": \"$GL_DB_NAME\", \"DatabaseHost\": \"$DB_HOST\", \"Discord.DiscordLogWebhook\": \"$DC_ADMIN_WEBHOOK\"}" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
+jq --arg host "$DB_HOST" \
+   --arg user "$DB_USER" \
+   --arg pass "$DB_PASS" \
+   --arg name "$GL_DB_NAME" \
+   --arg webhook "$DC_ADMIN_WEBHOOK" \
+   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
+   "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
 mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
 
-jq ". + {\"DatabaseUser\": \"$DB_USER\", \"DatabasePassword\": \"$DB_PASS\", \"DatabaseName\": \"$GL_DB_NAME\", \"DatabaseHost\": \"$DB_HOST\", \"Website\": \"$SKINSITE_URL\"}" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
+jq --arg host "$DB_HOST" \
+   --arg user "$DB_USER" \
+   --arg pass "$DB_PASS" \
+   --arg name "$GL_DB_NAME" \
+   --arg site "$SKINSITE_URL" \
+   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Website = $site' \
+   "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
 mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" # theres more webhooks but im too lazy to add them
 
 # I like to use metaplugins.ini (created in cs2server/configs.sh) to load plugins, so remove all other vdf files to avoid confusion.
