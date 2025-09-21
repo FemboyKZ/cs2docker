@@ -194,6 +194,10 @@ elif [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1"
     echo "" # do nothing
 else
     install_layer "ads"
+    jq --arg region "$REGION" '.region = $region | .region |= uppercase' \
+        '.DefaultLang = $region' \
+        "$cssharp_cfg_dir/Advertisement/Advertisement.json" > "/tmp/Advertisement.json"
+    mv "/tmp/Advertisement.json" "$cssharp_cfg_dir/Advertisement/Advertisement.json"
     install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 fi
 
