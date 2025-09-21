@@ -63,7 +63,7 @@ install_layer "listfix"
 
 install_layer "banfix"
 
-# install_layer "cssplugins"
+install_layer "cssplugins"
 
 install_layer "weaponpaints"
 
@@ -151,16 +151,14 @@ fi
 
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 ;ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS
-;KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
-;CLEANER addons/cleanercs2/cleanercs2
-;SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
+KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
+CLEANER addons/cleanercs2/cleanercs2
+SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
 CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
-;MAM addons/multiaddonmanager/bin/multiaddonmanager
-;CCVAR addons/client_cvar_value/client_cvar_value
-;LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
-;VOICEFIX addons/CS2VoiceFix/CS2VoiceFix
-;GOTVFIX addons/GOTVCrashFix/GOTVCrashFix
-;BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
+MAM addons/multiaddonmanager/bin/multiaddonmanager
+CCVAR addons/client_cvar_value/client_cvar_value
+LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
+BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 ;MENUEXPORT addons/MenusExport/bin/MenusExport
 EOF
 
@@ -176,7 +174,7 @@ install_mount() {
 
 install_mount "logs" "logs"
 install_mount "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
-#install_mount "addons/counterstrikesharp/plugins/Chat_logger/logs" "addons/counterstrikesharp/plugins/Chat_logger/logs"
+install_mount "addons/counterstrikesharp/plugins/Chat_logger/logs" "addons/counterstrikesharp/plugins/Chat_logger/logs"
 install_mount "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
 
 # Run whitelist updater in background if whitelist is enabled
