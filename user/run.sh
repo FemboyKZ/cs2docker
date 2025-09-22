@@ -149,7 +149,7 @@ jq --arg host "$DB_HOST" \
    "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
 mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" # theres more webhooks but im too lazy to add them
 
-# I like to use metaplugins.ini (created in cs2server/configs.sh) to load plugins, so remove all other vdf files to avoid confusion.
+# I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 # Create metaplugins.ini for metamod
@@ -190,17 +190,18 @@ install_mount "kzdemos" "kzdemos"
 # Run whitelist updater in background if whitelist is enabled
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
     install_layer "whitelist"
+    cp "/watchdog/fkz/whitelist.txt" "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"
     /user/updatewl.sh &
 elif [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1" ]]; then
     echo "" # do nothing
 else
-    install_layer "ads"
-    jq --arg region "$REGION" \
-        '.DefaultLang = $region' \
-        "$cssharp_cfg_dir/Advertisement/Advertisement.json" > "/tmp/Advertisement.json"
-    mv "/tmp/Advertisement.json" "$cssharp_cfg_dir/Advertisement/Advertisement.json"
+    #install_layer "ads"
+    #jq --arg region "$REGION" \
+    #    '.DefaultLang = $region' \
+    #    "$cssharp_cfg_dir/Advertisement/Advertisement.json" > "/tmp/Advertisement.json"
+    #mv "/tmp/Advertisement.json" "$cssharp_cfg_dir/Advertisement/Advertisement.json"
     install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 fi
 
 # Run the server.
-"$server_dir/game/cs2.sh" -dedicated -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
+"$server_dir/game/cs2.sh" -dedicated -condebug -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
