@@ -135,19 +135,63 @@ jq --arg host "$DB_HOST" \
    --arg user "$DB_USER" \
    --arg pass "$DB_PASS" \
    --arg name "$GL_DB_NAME" \
-   --arg webhook "$DC_ADMIN_WEBHOOK" \
-   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
-   "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
-mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
+   --arg site "$SKINSITE_URL" \
+   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Website = $site' \
+   "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
+mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
 
 jq --arg host "$DB_HOST" \
    --arg user "$DB_USER" \
    --arg pass "$DB_PASS" \
    --arg name "$GL_DB_NAME" \
-   --arg site "$SKINSITE_URL" \
-   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Website = $site' \
-   "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
-mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" # theres more webhooks but im too lazy to add them
+   --arg webhook "$DC_ADMIN_WEBHOOK" \
+   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
+   "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
+mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
+
+update_maplist() {
+    local input="$1"
+    local output="$2"
+    
+    if [[ ! -f "$output" ]]; then
+        echo "Error: JSON file $output does not exist."
+        return 1
+    fi
+    
+    local maps=$(mktemp)
+    local ws_maps=$(mktemp)
+    
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        
+        if [[ "$line" == *:* ]]; then
+            map_name="${line%%:*}"
+            workshop_id="${line#*:}"
+            echo "{\"key\": \"$map_name\", \"value\": $workshop_id}" >> "$ws_maps"
+        else
+            echo "\"$line\"" >> "$maps"
+        fi
+    done < "$input"
+
+    local maps_arr="[]"
+    local ws_obj="{}"
+    
+    if [[ -s "$maps" ]]; then
+        maps_arr=$(jq -s '.' "$maps")
+    fi
+    
+    if [[ -s "$ws_maps" ]]; then
+        ws_obj=$(jq -s 'map({(.key): .value}) | add' "$ws_maps")
+    fi
+    
+    jq --argjson maps "$maps_arr" --argjson workshop "$ws_obj" \
+       '.DefaultMaps = $maps | .WorkshopMaps = $workshop' \
+       "$output" > "${output}.tmp" && mv "${output}.tmp" "$output"
+    
+    rm -f "$maps" "$ws_maps"
+}
+update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/maplist.json"
+update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
 
 # I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
