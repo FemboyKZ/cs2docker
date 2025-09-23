@@ -78,12 +78,16 @@ fi
 
 # cs2kz cfg (STUPID TXT FILE)
 modify_config() {
+    local file="$1"
     local key="$2"
     local value="$3"
-    local escaped_value=$(printf '%s\n' "$value" | sed -e 's/[\/&]/\\&/g')
-    sed -i "s#\(\"$key\"[[:space:]]*\)\"[^\"]*\"#\1\"$escaped_value\"#" "$1"
+    local escaped_value=$(printf '%s' "$value" | sed -e 's/[\x00-\x1F\x7F]/\\&/g' -e 's/[\/&]/\\&/g')
+    if grep -q "\"$key\"" "$file"; then
+        sed -i "s/\(\"$key\"[[:space:]]*\)\"[^\"]*\"/\1\"$escaped_value\"/" "$file"
+    else
+        echo "Warning: Key '$key' not found in $file"
+    fi
 }
-
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "apiKey" "$CS2KZ_APIKEY"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "user" "$DB_USER"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PASS"
@@ -91,63 +95,87 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
 
-jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
-   '.Discord_WebHook = $webhook' \
-   "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
-mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
+check_file() {
+    if [[ ! -f "$1" ]]; then
+        echo "Warning: File $1 does not exist, skipping"
+        return 1
+    fi
+    return 0
+}
 
-jq --arg webhook "$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD" \
-   --arg host "$DB_HOST" \
-   --arg user "$DB_USER" \
-   --arg pass "$DB_PASS" \
-   --arg name "$DB_NAME" \
-   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .DiscordWebhook = $webhook' \
-   "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
-mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
+if ! check_file "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"; then
+    jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
+        '.Discord_WebHook = $webhook' \
+        "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
+    mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
+fi
 
-jq --arg apikey "$SVLIST_APIKEY" \
-   '."server-api-key" = $apikey' \
-   "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" > "/tmp/CS2ServerList.json"
-mv "/tmp/CS2ServerList.json" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"
+if ! check_file "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"; then
+    jq --arg webhook "$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD" \
+        --arg host "$DB_HOST" \
+        --arg user "$DB_USER" \
+        --arg pass "$DB_PASS" \
+        --arg name "$DB_NAME" \
+        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .DiscordWebhook = $webhook' \
+        "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
+    mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
+fi
 
-jq --arg host "$DB_HOST:$DB_PORT" \
-   --arg user "$DB_USER" \
-   --arg pass "$DB_PASS" \
-   --arg name "$GL_DB_NAME" \
-   '.DatabaseParams.Host = $host | .DatabaseParams.User = $user | .DatabaseParams.Password = $pass | .DatabaseParams.Name = $name' \
-   "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" > "/tmp/PlayerSettings.json"
-mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
+if ! check_file "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"; then
+    jq --arg apikey "$SVLIST_APIKEY" \
+        '."server-api-key" = $apikey' \
+        "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" > "/tmp/CS2ServerList.json"
+    mv "/tmp/CS2ServerList.json" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"
+fi
 
-jq --arg apikey "$WS_APIKEY" \
-   '.ApiKey = $apikey' \
-   "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
-mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
+if ! check_file "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"; then
+    jq --arg host "$DB_HOST:$DB_PORT" \
+        --arg user "$DB_USER" \
+        --arg pass "$DB_PASS" \
+        --arg name "$GL_DB_NAME" \
+        '.DatabaseParams.Host = $host | .DatabaseParams.User = $user | .DatabaseParams.Password = $pass | .DatabaseParams.Name = $name' \
+        "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" > "/tmp/PlayerSettings.json"
+    mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
+fi
 
-jq --arg host "$DB_HOST" \
-   --arg user "$DB_USER" \
-   --arg pass "$DB_PASS" \
-   --arg name "$GL_DB_NAME" \
-   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name' \
-   "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" > "/tmp/Config.json"
-mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
+if ! check_file "$cssharp_cfg_dir/Whitelist/Whitelist.json"; then
+    jq --arg apikey "$WS_APIKEY" \
+        '.ApiKey = $apikey' \
+        "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
+    mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
+fi
 
-jq --arg host "$DB_HOST" \
-   --arg user "$DB_USER" \
-   --arg pass "$DB_PASS" \
-   --arg name "$GL_DB_NAME" \
-   --arg site "$SKINSITE_URL" \
-   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Website = $site' \
-   "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
-mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
+if ! check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json"; then
+    jq --arg host "$DB_HOST" \
+        --arg user "$DB_USER" \
+        --arg pass "$DB_PASS" \
+        --arg name "$GL_DB_NAME" \
+        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name' \
+        "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" > "/tmp/Config.json"
+    mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
+fi
 
-jq --arg host "$DB_HOST" \
-   --arg user "$DB_USER" \
-   --arg pass "$DB_PASS" \
-   --arg name "$GL_DB_NAME" \
-   --arg webhook "$DC_ADMIN_WEBHOOK" \
-   '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
-   "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
-mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
+if ! check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
+    jq --arg host "$DB_HOST" \
+        --arg user "$DB_USER" \
+        --arg pass "$DB_PASS" \
+        --arg name "$GL_DB_NAME" \
+        --arg site "$SKINSITE_URL" \
+        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Website = $site' \
+        "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
+    mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
+fi
+
+if ! check_file "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"; then
+    jq --arg host "$DB_HOST" \
+        --arg user "$DB_USER" \
+        --arg pass "$DB_PASS" \
+        --arg name "$GL_DB_NAME" \
+        --arg webhook "$DC_ADMIN_WEBHOOK" \
+        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
+        "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
+    mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
+fi
 
 update_maplist() {
     local input="$1"
@@ -190,8 +218,8 @@ update_maplist() {
     
     rm -f "$maps" "$ws_maps"
 }
-update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/maplist.json"
-update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
+#update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/maplist.json"
+#update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
 
 # I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
