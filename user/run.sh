@@ -248,9 +248,7 @@ BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 EOF
 
 # Create folders for mounts if not existing
-if [[ ! -d "/mounts/$ID" ]]; then
-    mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/kzdemos" "/mounts/workshop"
-fi
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/kzdemos" "/mounts/workshop"
 
 install_mount() {
     rm -rf "$server_dir/game/csgo/$2"
