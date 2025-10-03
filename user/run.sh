@@ -71,6 +71,8 @@ else
 
     install_layer "weaponpaints"
 
+    install_layer "statusblocker"
+
     install_layer "maplist"
 
     install_layer "configs"
@@ -236,6 +238,7 @@ cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
+;STATUSBLOCKER addons/StatusBlocker/bin/linuxsteamrt64/StatusBlocker
 CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
 MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
@@ -258,6 +261,9 @@ install_mount "logs" "logs"
 install_mount "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
 install_mount "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "kzdemos" "kzdemos"
+
+mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
+ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
 # Run whitelist updater in background if whitelist is enabled
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
