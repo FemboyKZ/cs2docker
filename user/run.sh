@@ -103,14 +103,14 @@ check_file() {
     return 0
 }
 
-if ! check_file "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"; then
+if check_file "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"; then
     jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
         '.Discord_WebHook = $webhook' \
         "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
     mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
 fi
 
-if ! check_file "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"; then
+if check_file "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"; then
     jq --arg webhook "$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD" \
         --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
@@ -121,14 +121,14 @@ if ! check_file "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"; then
     mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
 fi
 
-if ! check_file "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"; then
+if check_file "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"; then
     jq --arg apikey "$SVLIST_APIKEY" \
         '."server-api-key" = $apikey' \
         "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" > "/tmp/CS2ServerList.json"
     mv "/tmp/CS2ServerList.json" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"
 fi
 
-if ! check_file "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"; then
+if check_file "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"; then
     jq --arg host "$DB_HOST:$DB_PORT" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
@@ -138,14 +138,14 @@ if ! check_file "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"; then
     mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
 fi
 
-if ! check_file "$cssharp_cfg_dir/Whitelist/Whitelist.json"; then
+if check_file "$cssharp_cfg_dir/Whitelist/Whitelist.json"; then
     jq --arg apikey "$WS_APIKEY" \
         '.ApiKey = $apikey' \
         "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
     mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
 fi
 
-if ! check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json"; then
+if check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json"; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
@@ -155,7 +155,7 @@ if ! check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/Account
     mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
 fi
 
-if ! check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
+if check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
@@ -166,13 +166,13 @@ if ! check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
     mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
 fi
 
-if ! check_file "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"; then
+if check_file "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
         --arg name "$GL_DB_NAME" \
         --arg webhook "$DC_ADMIN_WEBHOOK" \
-        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
+        '.DatabaseConfig.DatabaseHost = $host | .DatabaseConfig.DatabaseUser = $user | .DatabaseConfig.DatabasePassword = $pass | .DatabaseConfig.DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
         "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
     mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
 fi
