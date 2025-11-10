@@ -117,7 +117,7 @@ if check_file "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"; then
         --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
-        --arg name "$DB_NAME" \
+        --arg name "$GL_DB_NAME" \
         '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .DiscordWebhook = $webhook' \
         "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
     mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
@@ -155,6 +155,16 @@ if check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDu
         '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name' \
         "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" > "/tmp/Config.json"
     mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
+fi
+
+if check_file "$cssharp_cfg_dir/Clientprefs/Clientprefs.json"; then
+    jq --arg host "$DB_HOST" \
+        --arg user "$DB_USER" \
+        --arg pass "$DB_PASS" \
+        --arg name "$GL_DB_NAME" \
+        '.DatabaseHost = $host | .DatabaseUsername = $user | .DatabasePassword = $pass | .DatabaseName = $name' \
+        "$cssharp_cfg_dir/Clientprefs/Clientprefs.json" > "/tmp/Clientprefs.json"
+    mv "/tmp/Clientprefs.json" "$cssharp_cfg_dir/Clientprefs/Clientprefs.json"
 fi
 
 if check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
