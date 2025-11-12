@@ -16,7 +16,7 @@ rm -f "$server_dir/game/csgo/cfg/server.cfg"
 cat <<EOF > "$server_dir/game/csgo/cfg/server.cfg"
 hostname "$HOSTNAME"
 // hostip 0.0.0.0
-// hostport "$PORT"
+// hostport $PORT
 sv_password ""
 rcon_password "$RCON_PASSWORD"
 sv_hibernate_when_empty false
@@ -189,50 +189,6 @@ if check_file "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"; then
     mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
 fi
 
-update_maplist() {
-    local input="$1"
-    local output="$2"
-    
-    if [[ ! -f "$output" ]]; then
-        echo "Error: JSON file $output does not exist."
-        return 1
-    fi
-    
-    local maps=$(mktemp)
-    local ws_maps=$(mktemp)
-    
-    while IFS= read -r line; do
-        [[ -z "$line" ]] && continue
-        
-        if [[ "$line" == *:* ]]; then
-            map_name="${line%%:*}"
-            workshop_id="${line#*:}"
-            echo "{\"key\": \"$map_name\", \"value\": $workshop_id}" >> "$ws_maps"
-        else
-            echo "\"$line\"" >> "$maps"
-        fi
-    done < "$input"
-
-    local maps_arr="[]"
-    local ws_obj="{}"
-    
-    if [[ -s "$maps" ]]; then
-        maps_arr=$(jq -s '.' "$maps")
-    fi
-    
-    if [[ -s "$ws_maps" ]]; then
-        ws_obj=$(jq -s 'map({(.key): .value}) | add' "$ws_maps")
-    fi
-    
-    jq --argjson maps "$maps_arr" --argjson workshop "$ws_obj" \
-       '.DefaultMaps = $maps | .WorkshopMaps = $workshop' \
-       "$output" > "${output}.tmp" && mv "${output}.tmp" "$output"
-    
-    rm -f "$maps" "$ws_maps"
-}
-#update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/maplist.json"
-#update_maplist "/layers/maplist/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
-
 # I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
@@ -248,7 +204,7 @@ cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
-;STATUSBLOCKER addons/StatusBlocker/bin/linuxsteamrt64/StatusBlocker
+STATUSBLOCKER addons/StatusBlocker/bin/linuxsteamrt64/StatusBlocker
 CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
 MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
@@ -258,20 +214,25 @@ BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 EOF
 
 # Create folders for mounts if not existing
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/kzdemos" "/mounts/workshop"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/kzdemos" "/mounts/workshop" "mounts/kzreplays"
+mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
-install_mount() {
+install_mount_local() {
     rm -rf "$server_dir/game/csgo/$2"
     ln -s "/mounts/$ID/$1" "$server_dir/game/csgo/$2"
 }
 
-install_mount "logs" "logs"
-install_mount "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
-install_mount "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
-install_mount "kzdemos" "kzdemos"
+install_mount() {
+    rm -rf "$server_dir/game/csgo/$2"
+    ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
+}
 
-mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
-ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+install_mount_local "logs" "logs"
+install_mount_local "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
+install_mount_local "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
+install_mount "kzdemos" "kzdemos"
+install_mount "kzreplays" "kzreplays"
+install_mount "workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
 # Run whitelist updater in background if whitelist is enabled
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
