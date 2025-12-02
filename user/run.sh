@@ -217,22 +217,19 @@ EOF
 mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/kzdemos" "/mounts/workshop" "mounts/kzreplays"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
-install_mount_local() {
-    rm -rf "$server_dir/game/csgo/$2"
-    ln -s "/mounts/$ID/$1" "$server_dir/game/csgo/$2"
-}
-
 install_mount() {
     rm -rf "$server_dir/game/csgo/$2"
     ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
 }
 
-install_mount_local "logs" "logs"
-install_mount_local "addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
-install_mount_local "addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
+install_mount "$ID/logs" "logs"
+install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
+install_mount "$ID/addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "kzdemos" "kzdemos"
 install_mount "kzreplays" "kzreplays"
-install_mount "workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+
+rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
 # Run whitelist updater in background if whitelist is enabled
 if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
