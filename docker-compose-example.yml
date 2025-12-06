@@ -30,9 +30,7 @@ services:
       driver: json-file
       options:
         max-file: "3"
-    ports:
-      - 27015:27015/udp
-      - 27015:27015/tcp
+    network_mode: host
     environment:
       <<: *default-env
       ID: cs2server1 # unique ID for this server, used for mount folders
