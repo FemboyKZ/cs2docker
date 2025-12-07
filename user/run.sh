@@ -11,29 +11,26 @@ cp -rs "$build_dir"/* "$server_dir"
 rm "$server_dir/game/bin/linuxsteamrt64/cs2"
 cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64/cs2"
 
-# Create server cfg
-rm -f "$server_dir/game/csgo/cfg/server.cfg"
-cat <<EOF > "$server_dir/game/csgo/cfg/server.cfg"
-hostname "$HOSTNAME"
-// hostip 0.0.0.0
-// hostport $PORT
-sv_password ""
-rcon_password "$RCON_PASSWORD"
-sv_hibernate_when_empty false
-sv_hibernate_postgame_delay 0
-sv_tags "$TAGS"
-exec fkz-print.cfg
-// exec fkz-settings.cfg
-exec fkz-logs.cfg
-// exec fkz-tv.cfg
-EOF
-
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/kzdemos" "/mounts/workshop" "mounts/kzreplays"
+mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
-# Install layers
 install_layer() {
     cp -rf "/layers/$1"/* "$server_dir/game/csgo"
+}
+
+install_mount() {
+    rm -rf "$server_dir/game/csgo/$2"
+    ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
+}
+
+check_file() {
+    if [[ ! -f "$1" ]]; then
+        echo "Warning: File $1 does not exist, skipping"
+        return 1
+    fi
+    return 0
 }
 
 install_layer "mm"
@@ -64,16 +61,15 @@ install_layer "listfix"
 
 install_layer "banfix"
 
-if [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1" ]]; then
+if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
+    # TODO: this probably causes issues but ill fix it later
 else
     install_layer "cssplugins"
 
     install_layer "weaponpaints"
 
     install_layer "statusblocker"
-
-    install_layer "maplist"
 
     install_layer "configs"
 fi
@@ -96,14 +92,6 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
-
-check_file() {
-    if [[ ! -f "$1" ]]; then
-        echo "Warning: File $1 does not exist, skipping"
-        return 1
-    fi
-    return 0
-}
 
 if check_file "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"; then
     jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
@@ -140,13 +128,6 @@ if check_file "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"; then
     mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
 fi
 
-if check_file "$cssharp_cfg_dir/Whitelist/Whitelist.json"; then
-    jq --arg apikey "$WS_APIKEY" \
-        '.ApiKey = $apikey' \
-        "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
-    mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
-fi
-
 if check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json"; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
@@ -178,6 +159,21 @@ if check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
     mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
 fi
 
+install_mount "$ID/addons/counterstrikesharp/configs/plugins/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
+install_mount "$ID/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
+
+# these cfg need to be mounted before this point
+if check_file "$cssharp_cfg_dir/Whitelist/Whitelist.json"; then
+    jq --arg apikey "$WS_APIKEY" \
+       --arg host "$DB_HOST" \
+       --arg user "$DB_USER" \
+       --arg pass "$DB_PASS" \
+       --arg name "$GL_DB_NAME" \
+        '.UseDatabase = true | .KickIfFailed = true | .Database.Host = $host | .Database.User = $user | .Database.Password = $pass | .Database.Name = $name | .ApiKey = $apikey' \
+        "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
+    mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
+fi
+
 if check_file "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
@@ -204,46 +200,55 @@ cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
-STATUSBLOCKER addons/StatusBlocker/bin/linuxsteamrt64/StatusBlocker
+;STATUSBLOCKER addons/StatusBlocker/bin/linuxsteamrt64/StatusBlocker
 CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
 MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
-BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
+;BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 ;MENUEXPORT addons/MenusExport/bin/MenusExport
 EOF
 
-# Create folders for mounts if not existing
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/kzdemos" "/mounts/workshop" "mounts/kzreplays"
-mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
+# Create server cfg
+rm -f "$server_dir/game/csgo/cfg/server.cfg"
+cat <<EOF > "$server_dir/game/csgo/cfg/server.cfg"
+hostname "$HOSTNAME"
+// hostip 0.0.0.0
+// hostport $PORT
+sv_password ""
+rcon_password "$RCON_PASSWORD"
+sv_hibernate_when_empty false
+sv_hibernate_postgame_delay 0
+sv_tags "$TAGS"
+exec fkz-print.cfg
+// exec fkz-settings.cfg
+exec fkz-logs.cfg
+// exec fkz-tv.cfg
+EOF
 
-install_mount() {
-    rm -rf "$server_dir/game/csgo/$2"
-    ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
-}
+install_mount "$ID/addons/counterstrikesharp/configs/core.json" "addons/counterstrikesharp/configs/core.json"
+install_mount "$ID/addons/counterstrikesharp/configs/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
+install_mount "$ID/addons/counterstrikesharp/configs/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
+install_mount "$ID/addons/counterstrikesharp/configs/admins.json" "addons/counterstrikesharp/configs/admins.json"
 
 install_mount "$ID/logs" "logs"
 install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
 install_mount "$ID/addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
+
 install_mount "kzdemos" "kzdemos"
 install_mount "kzreplays" "kzreplays"
 
 rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
-# Run whitelist updater in background if whitelist is enabled
-if [[ "${WHITELIST,,}" == "true" || "${WHITELIST,,}" == "yes" || "$WHITELIST" == "1" ]]; then
+if [[ "${WHITELIST,,}" ]]; then
     install_layer "whitelist"
-    cp "/watchdog/fkz/whitelist.txt" "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"
-    /user/updatewl.sh &
-elif [[ "${MAPTEST,,}" == "true" || "${MAPTEST,,}" == "yes" || "$MAPTEST" == "1" ]]; then
+    if check_file "mounts/$ID/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"; then
+        install_mount "$ID/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt" "addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"
+    fi
+elif [[ "${MAPTEST,,}" ]]; then
     echo "" # do nothing
 else
-    #install_layer "ads"
-    #jq --arg region "$REGION" \
-    #    '.DefaultLang = $region' \
-    #    "$cssharp_cfg_dir/Advertisement/Advertisement.json" > "/tmp/Advertisement.json"
-    #mv "/tmp/Advertisement.json" "$cssharp_cfg_dir/Advertisement/Advertisement.json"
     install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 fi
 
