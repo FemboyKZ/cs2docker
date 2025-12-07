@@ -159,32 +159,6 @@ if check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
     mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
 fi
 
-install_mount "configs/addons/counterstrikesharp/configs/plugins/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
-install_mount "configs/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
-
-# these cfg need to be mounted before this point
-if check_file "$cssharp_cfg_dir/Whitelist/Whitelist.json"; then
-    jq --arg apikey "$WS_APIKEY" \
-       --arg host "$DB_HOST" \
-       --arg user "$DB_USER" \
-       --arg pass "$DB_PASS" \
-       --arg name "$GL_DB_NAME" \
-        '.UseDatabase = true | .KickIfFailed = true | .Database.Host = $host | .Database.User = $user | .Database.Password = $pass | .Database.Name = $name | .ApiKey = $apikey' \
-        "$cssharp_cfg_dir/Whitelist/Whitelist.json" > "/tmp/Whitelist.json"
-    mv "/tmp/Whitelist.json" "$cssharp_cfg_dir/Whitelist/Whitelist.json"
-fi
-
-if check_file "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json"; then
-    jq --arg host "$DB_HOST" \
-        --arg user "$DB_USER" \
-        --arg pass "$DB_PASS" \
-        --arg name "$GL_DB_NAME" \
-        --arg webhook "$DC_ADMIN_WEBHOOK" \
-        '.DatabaseConfig.DatabaseHost = $host | .DatabaseConfig.DatabaseUser = $user | .DatabaseConfig.DatabasePassword = $pass | .DatabaseConfig.DatabaseName = $name | .Discord.DiscordLogWebhook = $webhook' \
-        "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" > "/tmp/CS2-SimpleAdmin.json"
-    mv "/tmp/CS2-SimpleAdmin.json" "$cssharp_cfg_dir/CS2-SimpleAdmin/CS2-SimpleAdmin.json" # theres more webhooks but im too lazy to add them
-fi
-
 # I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
@@ -226,6 +200,11 @@ exec fkz-logs.cfg
 // exec fkz-tv.cfg
 EOF
 
+install_mount "configs/addons/counterstrikesharp/configs/plugins/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
+install_mount "configs/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
+
+install_mount "configs/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
+
 install_mount "configs/addons/counterstrikesharp/configs/core.json" "addons/counterstrikesharp/configs/core.json"
 install_mount "configs/addons/counterstrikesharp/configs/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
 install_mount "configs/addons/counterstrikesharp/configs/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
@@ -234,6 +213,7 @@ install_mount "configs/addons/counterstrikesharp/configs/admins.json" "addons/co
 install_mount "$ID/logs" "logs"
 install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
 install_mount "$ID/addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
+install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 
 install_mount "kzdemos" "kzdemos"
 install_mount "kzreplays" "kzreplays"
@@ -243,13 +223,6 @@ ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop
 
 if [[ "${WHITELIST,,}" ]]; then
     install_layer "whitelist"
-    if check_file "mounts/$ID/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"; then
-        install_mount "$ID/addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt" "addons/counterstrikesharp/configs/plugins/Whitelist/whitelist.txt"
-    fi
-elif [[ "${MAPTEST,,}" ]]; then
-    echo "" # do nothing
-else
-    install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 fi
 
 # Run the server.
