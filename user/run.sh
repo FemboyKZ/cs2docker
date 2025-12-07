@@ -172,14 +172,14 @@ fi
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 ;ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
-CLEANER addons/cleanercs2/cleanercs2
+;CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
 ;STATUSBLOCKER addons/StatusBlocker/bin/linuxsteamrt64/StatusBlocker
-CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
+;CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
 MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
-;BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
+BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 ;MENUEXPORT addons/MenusExport/bin/MenusExport
 EOF
 
@@ -196,7 +196,7 @@ sv_hibernate_postgame_delay 0
 sv_tags "$TAGS"
 exec fkz-print.cfg
 // exec fkz-settings.cfg
-exec fkz-logs.cfg
+// exec fkz-logs.cfg
 // exec fkz-tv.cfg
 EOF
 
@@ -204,6 +204,7 @@ install_mount "configs/addons/counterstrikesharp/configs/plugins/Whitelist" "add
 install_mount "configs/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
 
 install_mount "configs/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
+install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 
 install_mount "configs/addons/counterstrikesharp/configs/core.json" "addons/counterstrikesharp/configs/core.json"
 install_mount "configs/addons/counterstrikesharp/configs/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
