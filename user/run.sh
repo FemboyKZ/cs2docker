@@ -159,8 +159,8 @@ if check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
     mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
 fi
 
-install_mount "$ID/addons/counterstrikesharp/configs/plugins/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
-install_mount "$ID/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
+install_mount "configs/addons/counterstrikesharp/configs/plugins/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
+install_mount "configs/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
 
 # these cfg need to be mounted before this point
 if check_file "$cssharp_cfg_dir/Whitelist/Whitelist.json"; then
@@ -226,10 +226,10 @@ exec fkz-logs.cfg
 // exec fkz-tv.cfg
 EOF
 
-install_mount "$ID/addons/counterstrikesharp/configs/core.json" "addons/counterstrikesharp/configs/core.json"
-install_mount "$ID/addons/counterstrikesharp/configs/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
-install_mount "$ID/addons/counterstrikesharp/configs/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
-install_mount "$ID/addons/counterstrikesharp/configs/admins.json" "addons/counterstrikesharp/configs/admins.json"
+install_mount "configs/addons/counterstrikesharp/configs/core.json" "addons/counterstrikesharp/configs/core.json"
+install_mount "configs/addons/counterstrikesharp/configs/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
+install_mount "configs/addons/counterstrikesharp/configs/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
+install_mount "configs/addons/counterstrikesharp/configs/admins.json" "addons/counterstrikesharp/configs/admins.json"
 
 install_mount "$ID/logs" "logs"
 install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
