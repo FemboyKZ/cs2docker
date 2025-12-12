@@ -222,12 +222,17 @@ install_mount "kzreplays" "kzreplays"
 rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
-if [[ "${WHITELIST,,}" ]]; then
+if [[ "${WHITELIST,,}" = "true" ]]; then
     install_layer "whitelist"
 fi
 
 # temporary disable stealth module until fixed
+rm -rf "$server_dir/game/csgo/addons/StatusBlocker"
+rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
+rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/K4-GOTV"
+rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/StrafeHUD"
+rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/shared/CS2-SimpleAdminApi"
 
 # Run the server.
 "$server_dir/game/cs2.sh" -dedicated -condebug -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
