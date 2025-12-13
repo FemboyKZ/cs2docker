@@ -49,7 +49,7 @@ services:
       DB_PASS: root
       MAPTEST: false # enable map testing mode (true/false)
       WHITELIST: false  # enable whitelist-only mode (true/false)
-      ACCEL: false # enable accelerator for debugging (true/false)
+      ACCEL: # enable accelerator for debugging (cs2/css), blank to disable
       CS2KZ_APIKEY: 0 # cs2kz apikey
       SVLIST_APIKEY: 0 # cs2serverlist.com api key for this server
       DC_CHAT_THREAD: 0 # Discord thread ID for chat messages

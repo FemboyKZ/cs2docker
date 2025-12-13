@@ -45,8 +45,6 @@ rm "$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
 
 install_layer "cssharp"
 
-# #install_layer "accelcss" # only debug
-
 install_layer "mam"
 rm "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
 
@@ -159,17 +157,18 @@ if check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
     mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
 fi
 
-# I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
-find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
-
 # Create metaplugins.ini for metamod
 if [[ "${ACCEL,,}" == "cs2" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 elif [[ "${ACCEL,,}" == "css" ]]; then
+    install_layer "accelcss"
     echo "ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 else
     echo ";ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 fi
+
+# I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
+find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
