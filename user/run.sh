@@ -162,6 +162,7 @@ if [[ "${ACCEL,,}" == "cs2" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 elif [[ "${ACCEL,,}" == "css" ]]; then
     install_layer "accelcss"
+    install_mount "$ID/addons/AcceleratorCSS/logs" "addons/AcceleratorCSS/logs"
     echo "ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 else
     echo ";ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
@@ -213,7 +214,6 @@ install_mount "configs/addons/counterstrikesharp/configs/admins.json" "addons/co
 
 install_mount "$ID/logs" "logs"
 install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
-install_mount "$ID/addons/AcceleratorCSS/logs" "addons/AcceleratorCSS/logs"
 install_mount "$ID/addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 
