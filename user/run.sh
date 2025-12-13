@@ -13,7 +13,7 @@ cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64
 
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/kzdemos" "/mounts/workshop" "mounts/kzreplays"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/addons/AcceleratorCSS/logs" "/mounts/kzdemos" "/mounts/workshop" "/mounts/kzreplays"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 install_layer() {
@@ -163,14 +163,15 @@ fi
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 # Create metaplugins.ini for metamod
-if [[ "${ACCEL,,}" == "true" || "${ACCEL,,}" == "yes" || "$ACCEL" == "1" ]]; then
+if [[ "${ACCEL,,}" == "cs2" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+elif [[ "${ACCEL,,}" == "css" ]]; then
+    echo "ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 else
     echo ";ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 fi
 
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-;ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 ;CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
@@ -213,6 +214,7 @@ install_mount "configs/addons/counterstrikesharp/configs/admins.json" "addons/co
 
 install_mount "$ID/logs" "logs"
 install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
+install_mount "$ID/addons/AcceleratorCSS/logs" "addons/AcceleratorCSS/logs"
 install_mount "$ID/addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 
