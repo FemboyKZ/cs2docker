@@ -231,8 +231,8 @@ fi
 
 # temporary disable stealth module until fixed
 rm -rf "$server_dir/game/csgo/addons/StatusBlocker"
-rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin"
-#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
+#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin"
+rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/K4-GOTV"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/StrafeHUD"
 #rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/shared/CS2-SimpleAdminApi"
