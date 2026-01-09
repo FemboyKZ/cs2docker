@@ -207,6 +207,8 @@ install_mount "configs/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin
 install_mount "configs/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 
+install_mount "configs/motd.txt" "motd.txt"
+
 install_mount "configs/addons/counterstrikesharp/configs/core.json" "addons/counterstrikesharp/configs/core.json"
 install_mount "configs/addons/counterstrikesharp/configs/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
 install_mount "configs/addons/counterstrikesharp/configs/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
@@ -230,10 +232,10 @@ fi
 # temporary disable stealth module until fixed
 rm -rf "$server_dir/game/csgo/addons/StatusBlocker"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin"
-rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
+#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/K4-GOTV"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/StrafeHUD"
-rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/shared/CS2-SimpleAdminApi"
+#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/shared/CS2-SimpleAdminApi"
 
 # Run the server.
 "$server_dir/game/cs2.sh" -dedicated -condebug -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
