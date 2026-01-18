@@ -3,6 +3,14 @@ import xmltodict
 import sys
 
 
+def steamid64_to_steamid(steamid64):
+    steamid64 = int(steamid64)
+    account_id = (steamid64 - 76561197960265728) & 0xFFFFFFFF
+    y = account_id & 1
+    z = (account_id - y) >> 1
+    return f"STEAM_1:{y}:{z}"
+
+
 def fetch_and_save_member_ids(group_url_name):
     url = f"https://steamcommunity.com/{group_url_name}/memberslistxml/?xml=1"
 
@@ -16,7 +24,8 @@ def fetch_and_save_member_ids(group_url_name):
     
     group_steamids = set()
     for steamid64 in member_ids:
-        group_steamids.add(steamid64)
+        steamid = steamid64_to_steamid(steamid64)
+        group_steamids.add(steamid)
     
     file_lines = []
     group_section_start = -1
@@ -27,9 +36,9 @@ def fetch_and_save_member_ids(group_url_name):
             file_lines = file.readlines()
             
         for i, line in enumerate(file_lines):
-            if "; AUTO-MANAGED GROUP MEMBERS - START" in line:
+            if "// AUTO-MANAGED GROUP MEMBERS - START" in line:
                 group_section_start = i
-            elif "; AUTO-MANAGED GROUP MEMBERS - END" in line:
+            elif "// AUTO-MANAGED GROUP MEMBERS - END" in line:
                 group_section_end = i
                 break
     except FileNotFoundError:
@@ -41,10 +50,10 @@ def fetch_and_save_member_ids(group_url_name):
         new_lines = file_lines
         if new_lines and not new_lines[-1].endswith('\n'):
             new_lines.append('\n')
-        new_lines.append('\n; AUTO-MANAGED GROUP MEMBERS - START\n')
+        new_lines.append('\n// AUTO-MANAGED GROUP MEMBERS - START\n')
         for steamid in sorted(group_steamids):
             new_lines.append(f"{steamid}\n")
-        new_lines.append('; AUTO-MANAGED GROUP MEMBERS - END\n')
+        new_lines.append('// AUTO-MANAGED GROUP MEMBERS - END\n')
         added = len(group_steamids)
         removed = 0
     else:
@@ -53,18 +62,18 @@ def fetch_and_save_member_ids(group_url_name):
         old_group_ids = set()
         for i in range(group_section_start + 1, group_section_end):
             line = file_lines[i].strip()
-            if line and not line.startswith(';'):
-                steamid = line.split(';')[0].strip()
+            if line and not line.startswith('//'):
+                steamid = line.split('//')[0].strip()
                 if steamid.startswith('STEAM_'):
                     old_group_ids.add(steamid)
         
         added = len(group_steamids - old_group_ids)
         removed = len(old_group_ids - group_steamids)
 
-        new_lines.append('; AUTO-MANAGED GROUP MEMBERS - START\n')
+        new_lines.append('// AUTO-MANAGED GROUP MEMBERS - START\n')
         for steamid in sorted(group_steamids):
             new_lines.append(f"{steamid}\n")
-        new_lines.append('; AUTO-MANAGED GROUP MEMBERS - END\n')
+        new_lines.append('// AUTO-MANAGED GROUP MEMBERS - END\n')
         
         if group_section_end + 1 < len(file_lines):
             new_lines.extend(file_lines[group_section_end + 1:])
