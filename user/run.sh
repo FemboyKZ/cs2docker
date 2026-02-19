@@ -59,9 +59,10 @@ install_layer "listfix"
 
 install_layer "banfix"
 
+install_layer "wscleaner"
+
 if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
-    # TODO: this probably causes issues but ill fix it later
 else
     install_layer "cssplugins"
 
@@ -69,8 +70,9 @@ else
 
     install_layer "statusblocker"
 
-    install_layer "configs"
 fi
+
+install_layer "configs"
 
 # cs2kz cfg (STUPID TXT FILE)
 modify_config() {
@@ -182,6 +184,7 @@ CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 ;MENUEXPORT addons/MenusExport/bin/MenusExport
+WSCLEANER addons/wscleaner/bin/wscleaner
 EOF
 
 # Create server cfg
@@ -222,8 +225,8 @@ install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/count
 install_mount "kzdemos" "kzdemos"
 install_mount "kzreplays" "kzreplays"
 
-rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
-ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+#rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+#ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
 if [[ "${WHITELIST,,}" = "true" ]]; then
     install_layer "whitelist"
@@ -232,7 +235,7 @@ fi
 # temporary disable stealth module until fixed
 rm -rf "$server_dir/game/csgo/addons/StatusBlocker"
 #rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin"
-rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
+#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/K4-GOTV"
 rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/StrafeHUD"
 #rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/shared/CS2-SimpleAdminApi"
