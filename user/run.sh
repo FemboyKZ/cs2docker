@@ -13,7 +13,7 @@ cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64
 
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/addons/AcceleratorCSS/logs" "/mounts/kzdemos" "/mounts/workshop" "/mounts/kzreplays"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/workshop" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/addons/AcceleratorCSS/logs" "/mounts/kzdemos" "/mounts/workshop" "/mounts/kzreplays"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 install_layer() {
