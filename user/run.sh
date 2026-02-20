@@ -225,8 +225,8 @@ install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/count
 install_mount "kzdemos" "kzdemos"
 install_mount "kzreplays" "kzreplays"
 
-#rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
-#ln -s "/mounts/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+ln -s "/mounts/$ID/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
 if [[ "${WHITELIST,,}" = "true" ]]; then
     install_layer "whitelist"
