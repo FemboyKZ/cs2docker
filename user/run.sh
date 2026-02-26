@@ -13,7 +13,7 @@ cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64
 
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/workshop" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/addons/counterstrikesharp/plugins/Chat_Logger/logs" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/addons/AcceleratorCSS/logs" "/mounts/kzdemos" "/mounts/workshop" "/mounts/kzreplays"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/workshop" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/logs/chat" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/addons/AcceleratorCSS/logs" "/mounts/kzdemos" "/mounts/workshop" "/mounts/kzreplays"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 install_layer() {
@@ -59,17 +59,16 @@ install_layer "listfix"
 
 install_layer "banfix"
 
-install_layer "wscleaner"
-
 if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
+
+    install_layer "wscleaner"
 else
     install_layer "cssplugins"
 
     install_layer "weaponpaints"
 
     install_layer "statusblocker"
-
 fi
 
 install_layer "configs"
@@ -220,13 +219,16 @@ install_mount "configs/addons/counterstrikesharp/configs/admins.json" "addons/co
 install_mount "$ID/logs" "logs"
 install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
 install_mount "$ID/addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
-install_mount "addons/counterstrikesharp/plugins/Chat_Logger/logs" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
+install_mount "$ID/logs/chat" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 
 install_mount "kzdemos" "kzdemos"
 install_mount "kzreplays" "kzreplays"
 
 rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 ln -s "/mounts/$ID/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+
+rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
+echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
 
 if [[ "${WHITELIST,,}" = "true" ]]; then
     install_layer "whitelist"
