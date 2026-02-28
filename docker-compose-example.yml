@@ -1,20 +1,9 @@
-x-default-env: &default-env
-  MAP: de_nuke
-  WS_MAP: 3121168339 # kz_grotto
-  WS_APIKEY: # https://steamcommunity.com/dev/apikey
-  GL_DB_NAME: # global database name
-  DC_ADMIN_WEBHOOK: # Discord webhook for admin alerts
-  DC_ALT_WEBHOOK: # Discord webhook for alt account alerts
-  DC_STATUS_WEBHOOK: # Discord webhook for status alerts
-  DC_CHAT_WEBHOOK: # Discord webhook for chat messages
-  DC_CONNECT_WEBHOOK: # Discord webhook for connect messages
-
 services:
   cs2watchdog:
     image: cs2watchdog
     container_name: cs2watchdog
     restart: unless-stopped
-    user: 1000:1000
+    user: 1000:1000 # Change to your actual user ID and group ID
     tty: true
     stdin_open: true
     volumes:
@@ -23,7 +12,7 @@ services:
     image: cs2server
     container_name: cs2server1
     restart: unless-stopped
-    user: 1000:1000
+    user: 1000:1000 # Change to your actual user ID and group ID
     tty: true
     stdin_open: true
     logging:
@@ -31,32 +20,11 @@ services:
       options:
         max-file: "3"
     network_mode: host
-    environment:
-      <<: *default-env
-      ID: cs2server1 # unique ID for this server, used for mount folders
-      HOSTNAME: cs2server
-      GSLT: # https://steamcommunity.com/dev/managegameservers
-      IP: 0.0.0.0
-      IP_DOMAIN: somedomain.com
-      PORT: 27015
-      RCON_PASSWORD: changeme
-      REGION: EU # server region code (EU, NA)
-      TAGS: eu,public,cs2 # comma separated list of tags
-      DB_NAME: cs2server1 # database name for this server
-      DB_HOST: localhost
-      DB_PORT: 3306
-      DB_USER: root
-      DB_PASS: root
-      MAPTEST: false # enable map testing mode (true/false)
-      WHITELIST: false  # enable whitelist-only mode (true/false)
-      ACCEL: # enable accelerator for debugging (cs2/css), blank to disable
-      CS2KZ_APIKEY: 0 # cs2kz apikey
-      SVLIST_APIKEY: 0 # cs2serverlist.com api key for this server
-      DC_CHAT_THREAD: 0 # Discord thread ID for chat messages
-      DC_CONNECT_THREAD: 0 # Discord thread ID for connect messages
-      SKINSITE_URL: somedomain.com/skins/cs2server1 # URL to skin site for this server
+    env_file:
+      - .env.global
+      - .env.example # Change to your actual env file
     volumes:
       - ./watchdog:/watchdog
-      - ./layers:/layers:ro
+      - ./layers:/layers
       - ./mounts:/mounts
       - ./user:/user:ro
