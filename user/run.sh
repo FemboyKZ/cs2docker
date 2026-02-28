@@ -27,80 +27,6 @@ install_mount() {
     ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
 }
 
-install_github_release() {
-    local owner="$1"
-    local repo="$2"
-    local asset_pattern="$3"
-    local install_dir="$4"
-    local version_file="/mounts/${repo}_version.txt"
-
-    local release_json
-    release_json=$(curl -sSL \
-        ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
-        "https://api.github.com/repos/$owner/$repo/releases?per_page=1")
-
-    # Check if we got an array back, otherwise it's an API error
-    if ! echo "$release_json" | jq -e 'type == "array"' > /dev/null 2>&1; then
-        echo "ERROR: GitHub API error for $owner/$repo:"
-        echo "$release_json" | jq -r '.message // .'
-        return 1
-    fi
-
-    release_json=$(echo "$release_json" | jq '.[0]')
-
-    local latest
-    latest=$(echo "$release_json" | jq -r '.tag_name')
-
-    local installed=""
-    if [[ -f "$version_file" ]]; then
-        installed=$(cat "$version_file")
-    fi
-
-    mkdir -p "$install_dir"
-
-    if [[ "$latest" != "$installed" ]]; then
-        echo "Installing $repo: $latest"
-        local asset_url
-        asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
-            '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
-
-        if [[ -z "$asset_url" ]]; then
-            echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
-            echo "Available assets:"
-            echo "$release_json" | jq -r '.assets[].name'
-            return 1
-        fi
-
-        local tmp_file="/tmp/${repo}_${latest}"
-        curl -sSL "$asset_url" -o "$tmp_file"
-
-        local file_type
-        file_type=$(file --brief --mime-type "$tmp_file")
-
-        case "$file_type" in
-            application/zip)
-                unzip -o -q "$tmp_file" -d "$install_dir"
-                ;;
-            application/gzip|application/x-gzip)
-                tar -xz --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
-                ;;
-            application/x-tar)
-                tar -x --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
-                ;;
-            *)
-                echo "ERROR: Unknown file type '$file_type' for $repo asset"
-                rm -f "$tmp_file"
-                return 1
-                ;;
-        esac
-
-        rm -f "$tmp_file"
-        echo "$latest" > "$version_file"
-    else
-        echo "$repo already up to date: $installed"
-    fi
-}
-
 modify_config() {
     local file="$1"
     local key="$2"
@@ -113,62 +39,35 @@ modify_config() {
     fi
 }
 
-# Install metamod
-MM_VERSION_FILE="/mounts/mm_version.txt"
-mm_latest=$(curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/mmsource-latest-linux")
-
-mm_installed=""
-if [[ -f "$MM_VERSION_FILE" ]]; then
-    mm_installed=$(cat "$MM_VERSION_FILE")
-fi
-
-if [[ "$mm_latest" != "$mm_installed" ]]; then
-    echo "Installing metamod: $mm_latest"
-    curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$mm_latest" | tar -xz --overwrite --no-same-permissions -C "/layers/mm"
-    echo "$mm_latest" > "$MM_VERSION_FILE"
-else
-    echo "Metamod already up to date: $mm_installed"
-fi
-
 install_layer "mm"
 rm "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_dir/game/csgo/gameinfo.gi"
 
-install_github_release "Source2ZE" "AcceleratorCS2" "addon" "/layers/accel"
 install_layer "accel"
 rm -rf "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
 
-install_github_release "KZGlobalTeam" "cs2kz-metamod" "linux" "/layers/kz"
 install_layer "kz"
 rm -rf "$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
 
-install_github_release "roflmuffin" "CounterStrikeSharp" "with-runtime-linux" "/layers/cssharp"
 install_layer "cssharp"
 
-install_github_release "Source2ZE" "MultiAddonManager" "linux" "/layers/mam"
 install_layer "mam"
 rm -rf "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
 
-install_github_release "zer0k-z" "sql_mm" "linux" "/layers/sql_mm"
 install_layer "sql_mm"
 
-install_github_release "komashchenko" "ClientCvarValue" "linux" "/layers/ccvar"
 install_layer "ccvar"
 
-install_github_release "Source2ZE" "CleanerCS2" "CleanerCS2" "/layers/cleaner/addons"
 install_layer "cleaner"
 rm -rf "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
 
-install_github_release "Source2ZE" "ServerListPlayersFix" "linux" "/layers/listfix"
 install_layer "listfix"
 
-install_github_release "Cruze03" "GameBanFix" "linux" "/layers/banfix"
 install_layer "banfix"
 
 if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
 
-    install_github_release "zer0k-z" "wscleaner" "linux" "/layers/sql_mm"
     install_layer "wscleaner"
 else
     install_layer "cssplugins"
@@ -303,18 +202,22 @@ exec fkz-print.cfg
 // exec fkz-tv.cfg
 EOF
 
-install_mount "configs/addons/counterstrikesharp/configs/plugins/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
-install_mount "configs/addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
+if [[ "${WHITELIST,,}" = "true" ]]; then
+    install_layer "whitelist"
+    install_mount "configs/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
+fi
 
-install_mount "configs/addons/counterstrikesharp/plugins/RockTheVote/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
+install_mount "configs/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
+
+install_mount "configs/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 
 install_mount "configs/motd.txt" "motd.txt"
 
-install_mount "configs/addons/counterstrikesharp/configs/core.json" "addons/counterstrikesharp/configs/core.json"
-install_mount "configs/addons/counterstrikesharp/configs/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
-install_mount "configs/addons/counterstrikesharp/configs/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
-install_mount "configs/addons/counterstrikesharp/configs/admins.json" "addons/counterstrikesharp/configs/admins.json"
+install_mount "configs/counterstrikesharp/core.json" "addons/counterstrikesharp/configs/core.json"
+install_mount "configs/counterstrikesharp/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
+install_mount "configs/counterstrikesharp/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
+install_mount "configs/counterstrikesharp/admins.json" "addons/counterstrikesharp/configs/admins.json"
 
 install_mount "$ID/logs" "logs"
 install_mount "$ID/logs/counterstrikesharp" "addons/counterstrikesharp/logs"
@@ -328,10 +231,6 @@ ln -s "/mounts/$ID/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/work
 
 rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
 echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
-
-if [[ "${WHITELIST,,}" = "true" ]]; then
-    install_layer "whitelist"
-fi
 
 # Run the server.
 "$server_dir/game/cs2.sh" -dedicated -condebug -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv

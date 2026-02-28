@@ -2,6 +2,114 @@
 
 set -ueEo pipefail
 
+install_github_release() {
+    local owner="$1"
+    local repo="$2"
+    local asset_pattern="$3"
+    local install_dir="$4"
+    local version_file="/watchdog/${repo}_version.txt"
+
+    local release_json
+    release_json=$(curl -sSL \
+        ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
+        "https://api.github.com/repos/$owner/$repo/releases?per_page=1")
+
+    if ! echo "$release_json" | jq -e 'type == "array"' > /dev/null 2>&1; then
+        echo "ERROR: GitHub API error for $owner/$repo:"
+        echo "$release_json" | jq -r '.message // .'
+        return 1
+    fi
+
+    release_json=$(echo "$release_json" | jq '.[0]')
+
+    local latest
+    latest=$(echo "$release_json" | jq -r '.tag_name')
+
+    local installed=""
+    if [[ -f "$version_file" ]]; then
+        installed=$(cat "$version_file")
+    fi
+
+    mkdir -p "$install_dir"
+
+    if [[ "$latest" != "$installed" ]]; then
+        echo "Installing $repo: $latest"
+        local asset_url
+        asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
+            '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
+
+        if [[ -z "$asset_url" ]]; then
+            echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
+            echo "Available assets:"
+            echo "$release_json" | jq -r '.assets[].name'
+            return 1
+        fi
+
+        local tmp_file="/tmp/${repo}_${latest}"
+        curl -sSL "$asset_url" -o "$tmp_file"
+
+        local file_type
+        file_type=$(file --brief --mime-type "$tmp_file")
+
+        case "$file_type" in
+            application/zip)
+                unzip -o -q "$tmp_file" -d "$install_dir"
+                ;;
+            application/gzip|application/x-gzip)
+                tar -xz --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
+                ;;
+            application/x-tar)
+                tar -x --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
+                ;;
+            *)
+                echo "ERROR: Unknown file type '$file_type' for $repo asset"
+                rm -f "$tmp_file"
+                return 1
+                ;;
+        esac
+
+        rm -f "$tmp_file"
+        echo "$latest" > "$version_file"
+    else
+        echo "$repo already up to date: $installed"
+    fi
+}
+
+install_metamod() {
+    local version_file="/watchdog/mm_version.txt"
+    local latest
+    latest=$(curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/mmsource-latest-linux")
+
+    local installed=""
+    if [[ -f "$version_file" ]]; then
+        installed=$(cat "$version_file")
+    fi
+
+    if [[ "$latest" != "$installed" ]]; then
+        echo "Installing metamod: $latest"
+        mkdir -p "/layers/mm"
+        curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$latest" \
+            | tar -xz --overwrite --no-same-permissions -C "/layers/mm"
+        echo "$latest" > "$version_file"
+    else
+        echo "Metamod already up to date: $installed"
+    fi
+}
+
+update_plugins() {
+    install_metamod
+    install_github_release "Source2ZE" "AcceleratorCS2" "addons" "/layers/accel/addons"
+    install_github_release "KZGlobalTeam" "cs2kz-metamod" "linux-master\.tar\.gz$" "/layers/kz"
+    install_github_release "roflmuffin" "CounterStrikeSharp" "with-runtime-linux" "/layers/cssharp"
+    install_github_release "Source2ZE" "MultiAddonManager" "linux" "/layers/mam"
+    install_github_release "zer0k-z" "sql_mm" "linux" "/layers/sql_mm"
+    install_github_release "komashchenko" "ClientCvarValue" "linux" "/layers/ccvar"
+    install_github_release "Source2ZE" "CleanerCS2" "CleanerCS2" "/layers/cleaner/addons"
+    install_github_release "Source2ZE" "ServerListPlayersFix" "linux" "/layers/listfix"
+    install_github_release "Cruze03" "GameBanFix" "linux" "/layers/banfix"
+    install_github_release "zer0k-z" "wscleaner" "linux" "/layers/wscleaner"
+}
+
 fetch_latest_cs2_version() {
     local api_url="https://api.steampowered.com/ISteamApps/UpToDateCheck/v1?version=0&format=json&appid=730"
     curl -sf $api_url | jq -re ".response.required_version | select(type == \"number\")"
@@ -52,4 +160,6 @@ for (( first=1;; first=0 )); do
     if [ ! -d "/watchdog/cs2/builds/$latest_version" ]; then
         update_cs2 || true
     fi
+
+    update_plugins || true
 done
