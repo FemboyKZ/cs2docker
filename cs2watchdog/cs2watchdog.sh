@@ -6,8 +6,10 @@ install_github_release() {
     local owner="$1"
     local repo="$2"
     local asset_pattern="$3"
-    local install_dir="$4"
-    local version_file="/watchdog/${repo}_version.txt"
+    local name="$4"  # layer name (key for builds dir)
+    local builds_dir="/watchdog/layers/$name/builds"
+    local latest_file="/watchdog/layers/$name/latest.txt"
+    local tmp_dir="/watchdog/layers/.tmp"
 
     local release_json
     release_json=$(curl -sSL \
@@ -25,89 +27,116 @@ install_github_release() {
     local latest
     latest=$(echo "$release_json" | jq -r '.tag_name')
 
-    local installed=""
-    if [[ -f "$version_file" ]]; then
-        installed=$(cat "$version_file")
+    if [ -d "$builds_dir/$latest" ]; then
+        echo "$name already up to date: $latest"
+        return 0
     fi
 
-    mkdir -p "$install_dir"
+    echo "Installing $name: $latest"
+    local asset_url
+    asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
+        '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
 
-    if [[ "$latest" != "$installed" ]]; then
-        echo "Installing $repo: $latest"
-        local asset_url
-        asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
-            '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
+    if [[ -z "$asset_url" ]]; then
+        echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
+        echo "Available assets:"
+        echo "$release_json" | jq -r '.assets[].name'
+        return 1
+    fi
 
-        if [[ -z "$asset_url" ]]; then
-            echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
-            echo "Available assets:"
-            echo "$release_json" | jq -r '.assets[].name'
+    local tmp_archive="/tmp/${name}_${latest}"
+    curl -sSL "$asset_url" -o "$tmp_archive"
+
+    rm -rf "$tmp_dir"
+    mkdir -p "$tmp_dir"
+
+    local file_type
+    file_type=$(file --brief --mime-type "$tmp_archive")
+
+    case "$file_type" in
+        application/zip)
+            unzip -o -q "$tmp_archive" -d "$tmp_dir"
+            ;;
+        application/gzip|application/x-gzip)
+            tar -xz --no-same-permissions -f "$tmp_archive" -C "$tmp_dir"
+            ;;
+        application/x-tar)
+            tar -x --no-same-permissions -f "$tmp_archive" -C "$tmp_dir"
+            ;;
+        *)
+            echo "ERROR: Unknown file type '$file_type' for $name"
+            rm -f "$tmp_archive"
+            rm -rf "$tmp_dir"
             return 1
-        fi
+            ;;
+    esac
 
-        local tmp_file="/tmp/${repo}_${latest}"
-        curl -sSL "$asset_url" -o "$tmp_file"
+    rm -f "$tmp_archive"
+    mkdir -p "$builds_dir"
+    mv "$tmp_dir" "$builds_dir/$latest"
 
-        local file_type
-        file_type=$(file --brief --mime-type "$tmp_file")
-
-        case "$file_type" in
-            application/zip)
-                unzip -o -q "$tmp_file" -d "$install_dir"
-                ;;
-            application/gzip|application/x-gzip)
-                tar -xz --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
-                ;;
-            application/x-tar)
-                tar -x --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
-                ;;
-            *)
-                echo "ERROR: Unknown file type '$file_type' for $repo asset"
-                rm -f "$tmp_file"
-                return 1
-                ;;
-        esac
-
-        rm -f "$tmp_file"
-        echo "$latest" > "$version_file"
-    else
-        echo "$repo already up to date: $installed"
-    fi
+    # Atomically update latest.txt
+    echo "$latest" > "/tmp/layer_latest.txt"
+    mv "/tmp/layer_latest.txt" "$latest_file"
 }
 
 install_metamod() {
-    local version_file="/watchdog/mm_version.txt"
+    local name="mm"
+    local builds_dir="/watchdog/layers/$name/builds"
+    local latest_file="/watchdog/layers/$name/latest.txt"
+    local tmp_dir="/watchdog/layers/.tmp"
+
     local latest
     latest=$(curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/mmsource-latest-linux")
 
-    local installed=""
-    if [[ -f "$version_file" ]]; then
-        installed=$(cat "$version_file")
+    if [ -d "$builds_dir/$latest" ]; then
+        echo "Metamod already up to date: $latest"
+        return 0
     fi
 
-    if [[ "$latest" != "$installed" ]]; then
-        echo "Installing metamod: $latest"
-        mkdir -p "/layers/mm"
-        curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$latest" \
-            | tar -xz --overwrite --no-same-permissions -C "/layers/mm"
-        echo "$latest" > "$version_file"
-    else
-        echo "Metamod already up to date: $installed"
-    fi
+    echo "Installing metamod: $latest"
+    rm -rf "$tmp_dir"
+    mkdir -p "$tmp_dir"
+    curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$latest" \
+        | tar -xz --no-same-permissions -C "$tmp_dir"
+
+    mkdir -p "$builds_dir"
+    mv "$tmp_dir" "$builds_dir/$latest"
+
+    echo "$latest" > "/tmp/layer_latest.txt"
+    mv "/tmp/layer_latest.txt" "$latest_file"
 }
 
 update_plugins() {
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "accelcss")
+
+    rm -rf "/watchdog/layers/.tmp"
+
     install_metamod
-    install_github_release "Source2ZE" "AcceleratorCS2" "addons" "/layers/accel/addons"
-    install_github_release "KZGlobalTeam" "cs2kz-metamod" "linux-master\.tar\.gz$" "/layers/kz"
-    install_github_release "roflmuffin" "CounterStrikeSharp" "with-runtime-linux" "/layers/cssharp"
-    install_github_release "Source2ZE" "MultiAddonManager" "linux" "/layers/mam"
-    install_github_release "zer0k-z" "sql_mm" "linux" "/layers/sql_mm"
-    install_github_release "komashchenko" "ClientCvarValue" "linux" "/layers/ccvar"
-    install_github_release "Source2ZE" "CleanerCS2" "CleanerCS2" "/layers/cleaner/addons"
-    install_github_release "Source2ZE" "ServerListPlayersFix" "linux" "/layers/listfix"
-    install_github_release "Cruze03" "GameBanFix" "linux" "/layers/banfix"
-    install_github_release "zer0k-z" "wscleaner" "linux" "/layers/wscleaner"
+    install_github_release "Source2ZE"       "AcceleratorCS2"       "addon"                  "accel"
+    install_github_release "KZGlobalTeam"    "cs2kz-metamod"        'linux-master\.tar\.gz$' "kz"
+    install_github_release "roflmuffin"      "CounterStrikeSharp"   "with-runtime-linux"     "cssharp"
+    install_github_release "Source2ZE"       "MultiAddonManager"    "linux"                  "mam"
+    install_github_release "zer0k-z"         "sql_mm"               "linux"                  "sql_mm"
+    install_github_release "komashchenko"    "ClientCvarValue"      "linux"                  "ccvar"
+    install_github_release "Source2ZE"       "CleanerCS2"           "CleanerCS2"             "cleaner"
+    install_github_release "Source2ZE"       "ServerListPlayersFix" "linux"                  "listfix"
+    install_github_release "Cruze03"         "GameBanFix"           "linux"                  "banfix"
+    install_github_release "zer0k-z"         "wscleaner"            "linux"                  "wscleaner"
+    install_github_release "FUNPLAY-pro-CS2" "AcceleratorCSS"       "linux"                  "accelcss"
+
+    # Clean old plugin builds not currently in use by any server
+    (
+        flock -nx 200 || exit 0
+        for name in "${layer_names[@]}"; do
+            local latest_file="/watchdog/layers/$name/latest.txt"
+            [ -f "$latest_file" ] || continue
+            local latest
+            latest=$(cat "$latest_file")
+            find "/watchdog/layers/$name/builds" -mindepth 1 -maxdepth 1 -type d ! -name "$latest" \
+                -exec rm -rf {} + 2>/dev/null || true
+        done
+    ) 200>/watchdog/layers/.lockfile || true
 }
 
 fetch_latest_cs2_version() {
@@ -146,7 +175,7 @@ fi
 mkdir -p "/watchdog/cs2/builds"
 
 for (( first=1;; first=0 )); do
-    [ $first -eq 0 ] && sleep 10
+    [ $first -eq 0 ] && sleep 30
 
     # The temporary directory might exist if update_cs2 fails
     rm -rf "/watchdog/.tmp"

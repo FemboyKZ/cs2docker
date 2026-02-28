@@ -19,7 +19,18 @@ mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
 install_layer() {
-    cp -rf "/layers/$1"/* "$server_dir/game/csgo"
+    local name="$1"
+    local subdir="${2:-}"
+    local latest_file="/watchdog/layers/$name/latest.txt"
+    if [[ -f "$latest_file" ]]; then
+        local ver
+        ver=$(cat "$latest_file")
+        local src="/watchdog/layers/$name/builds/$ver${subdir:+/$subdir}"
+        cp -rf "$src"/* "$server_dir/game/csgo"
+    else
+        local src="/layers/$name${subdir:+/$subdir}"
+        cp -rf "$src"/* "$server_dir/game/csgo"
+    fi
 }
 
 install_mount() {
@@ -43,7 +54,7 @@ install_layer "mm"
 rm "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_dir/game/csgo/gameinfo.gi"
 
-install_layer "accel"
+install_layer "accel" "addons"
 rm -rf "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
 
 install_layer "kz"
@@ -58,7 +69,7 @@ install_layer "sql_mm"
 
 install_layer "ccvar"
 
-install_layer "cleaner"
+install_layer "cleaner" "addons"
 rm -rf "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
 
 install_layer "listfix"
@@ -157,7 +168,6 @@ fi
 if [[ "${ACCEL,,}" == "cs2" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 elif [[ "${ACCEL,,}" == "css" ]]; then
-    install_github_release "FUNPLAY-pro-CS2" "AcceleratorCSS" "linux" "/layers/accelcss/addons"
     install_layer "accelcss"
     install_mount "$ID/logs/accelcss" "addons/AcceleratorCSS/logs"
     echo "ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
