@@ -222,8 +222,6 @@ install_mount "configs/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstri
 install_mount "configs/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 
-install_mount "configs/motd.txt" "motd.txt"
-
 install_mount "configs/counterstrikesharp/core.json" "addons/counterstrikesharp/configs/core.json"
 install_mount "configs/counterstrikesharp/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
 install_mount "configs/counterstrikesharp/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
@@ -238,6 +236,9 @@ install_mount "kzreplays" "kzreplays"
 
 rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 ln -s "/mounts/$ID/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
+
+rm -rf "$server_dir/game/csgo/motd.txt"
+echo "$MOTD" > "$server_dir/game/csgo/motd.txt"
 
 rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
 echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
