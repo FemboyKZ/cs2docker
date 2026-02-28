@@ -8,7 +8,7 @@ FKZ fork, wack so I recommend using Szwagi's original repo.
 
 The watchdog image keeps Counter-Strike 2 up to date.
 
-#### Volumes:
+### Volumes:
 
 - `/watchdog` - The directory where Steam and Counter-Strike 2 will be installed to.
 
@@ -16,7 +16,7 @@ The watchdog image keeps Counter-Strike 2 up to date.
 
 The server image runs an instance of a Counter-Strike 2 server. You can run as many as your hardware can handle.
 
-#### Volumes:
+### Volumes:
 
 - `/watchdog` - Has to be the same as the one passed to the watchdog.
 - `/user/run.sh` - The script that sets up and runs the server.
@@ -30,7 +30,7 @@ The server image runs an instance of a Counter-Strike 2 server. You can run as m
 
 It's recommended you edit [the example in this README](#runsh-1).
 
-#### Environment variables:
+### Environment variables:
 
 - `$build_ver` - The version number of Counter-Strike 2 that the server should use.
 - `$build_dir` - The directory where that version of Counter-Strike 2 is installed.
@@ -54,7 +54,7 @@ ports:
 
 ## Example
 
-#### docker-compose.yml
+### docker-compose.yml
 
 ```yml
 services:
@@ -73,8 +73,9 @@ services:
     ports:
       - "27015:27015/udp"
       - "27015:27015/tcp"
-    environment:
-      - GSLT=
+    env_files:
+      - .env
+      - .env.global
     volumes:
       - ./watchdog:/watchdog
       - ./layers:/layers
@@ -88,8 +89,9 @@ services:
     ports:
       - "27020:27015/udp"
       - "27020:27015/tcp"
-    environment:
-      - GSLT=
+    env_files:
+      - .env
+      - .env.global
     volumes:
       - ./watchdog:/watchdog
       - ./layers:/layers
@@ -97,7 +99,7 @@ services:
       - ./user:/user:ro
 ```
 
-#### run.&#8203;sh
+### run.&#8203;sh
 
 ```bash
 #!/bin/bash
@@ -112,15 +114,15 @@ echo "GSLT: $GSLT"
 cp -rs "$build_dir"/* "$server_dir"
 
 # The binary can't be symlinked because it checks it's own location and sets CWD based on that.
-rm "$server_dir/game/bin/linuxsteamrt64/cs2"
+rm -rf "$server_dir/game/bin/linuxsteamrt64/cs2"
 cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64/cs2"
 
 # Install MetaMod.
-tar -xf "/layers/metamod.tar.gz" -C "$server_dir/game/csgo"
+tar -xf "/layers/mm" -C "$server_dir/game/csgo"
 sed -i '0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/' "$server_dir/game/csgo/gameinfo.gi"
 
 # Install CS2KZ.
-tar -xf "/layers/cs2kz.tar.gz" -C "$server_dir/game/csgo"
+tar -xf "/layers/kz" -C "$server_dir/game/csgo"
 
 # Mount workshop folder.
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
