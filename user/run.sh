@@ -8,14 +8,16 @@ echo "Build version: $build_ver"
 cp -rs "$build_dir"/* "$server_dir"
 
 # The binary can't be symlinked because it checks it's own location and sets CWD based on that.
-rm "$server_dir/game/bin/linuxsteamrt64/cs2"
+rm -rf "$server_dir/game/bin/linuxsteamrt64/cs2"
 cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64/cs2"
 
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/workshop" "/mounts/$ID/addons/counterstrikesharp/logs" "/mounts/$ID/logs/chat" "/mounts/$ID/addons/AcceleratorCS2/dumps" "/mounts/$ID/addons/AcceleratorCSS/logs" "/mounts/kzdemos" "/mounts/workshop" "/mounts/kzreplays"
+mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/configs" "/mounts/$ID"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/logs/chat" "/mounts/$ID/dumps" "/mounts/$ID/logs/accelcss"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
+# Helper functions
 install_layer() {
     cp -rf "/layers/$1"/* "$server_dir/game/csgo"
 }
@@ -25,43 +27,104 @@ install_mount() {
     ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
 }
 
-check_file() {
-    if [[ ! -f "$1" ]]; then
-        echo "Warning: File $1 does not exist, skipping"
-        return 1
+install_github_release() {
+    local owner="$1"
+    local repo="$2"
+    local asset_pattern="$3"   # grep pattern to match the asset filename
+    local install_dir="$4"
+    local version_file="/mounts/$ID/${repo}_version.txt"
+
+    local latest
+    latest=$(curl -sSL "https://api.github.com/repos/$owner/$repo/releases/latest" \
+        | jq -r '.tag_name')
+
+    local installed=""
+    if [[ -f "$version_file" ]]; then
+        installed=$(cat "$version_file")
     fi
-    return 0
+
+    mkdir -p "$install_dir"
+
+    if [[ "$latest" != "$installed" ]]; then
+        echo "Installing $repo: $latest"
+        local asset_url
+        asset_url=$(curl -sSL "https://api.github.com/repos/$owner/$repo/releases/latest" \
+            | jq -r --arg pat "$asset_pattern" '.assets[] | select(.name | test($pat)) | .browser_download_url')
+        curl -sSL "$asset_url" | tar -xz -C "$install_dir"
+        echo "$latest" > "$version_file"
+    else
+        echo "$repo already up to date: $installed"
+    fi
 }
+
+modify_config() {
+    local file="$1"
+    local key="$2"
+    local value="$3"
+    local escaped_value=$(printf '%s' "$value" | sed -e 's/[\x00-\x1F\x7F]/\\&/g' -e 's/[\/&]/\\&/g')
+    if grep -q "\"$key\"" "$file"; then
+        sed -i "s/\(\"$key\"[[:space:]]*\)\"[^\"]*\"/\1\"$escaped_value\"/" "$file"
+    else
+        echo "Warning: Key '$key' not found in $file"
+    fi
+}
+
+# Install metamod
+MM_VERSION_FILE="/mounts/mm_version.txt"
+mm_latest=$(curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/mmsource-latest-linux")
+
+mm_installed=""
+if [[ -f "$MM_VERSION_FILE" ]]; then
+    mm_installed=$(cat "$MM_VERSION_FILE")
+fi
+
+if [[ "$mm_latest" != "$mm_installed" ]]; then
+    echo "Installing metamod: $mm_latest"
+    curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$mm_latest" | tar -xz -C "/layers/mm"
+    echo "$mm_latest" > "$MM_VERSION_FILE"
+else
+    echo "Metamod already up to date: $mm_installed"
+fi
 
 install_layer "mm"
 rm "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_dir/game/csgo/gameinfo.gi"
 
+install_github_release "Source2ZE" "AcceleratorCS2" "addons" "/layers/accel"
 install_layer "accel"
 rm "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
 
+install_github_release "KZGlobalTeam" "cs2kz-metamod" "linux" "/layers/kz"
 install_layer "kz"
 rm "$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
 
+install_github_release "roflmuffin" "CounterStrikeSharp" "linux-with-runtime" "/layers/cssharp"
 install_layer "cssharp"
 
+install_github_release "Source2ZE" "MultiAddonManager" "linux" "/layers/mam"
 install_layer "mam"
 rm "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
 
+install_github_release "zer0k-z" "sql_mm" "linux" "/layers/sql_mm"
 install_layer "sql_mm"
 
+install_github_release "komashchenko" "ClientCvarValue" "linux" "/layers/ccvar"
 install_layer "ccvar"
 
+install_github_release "Source2ZE" "CleanerCS2" "CleanerCS2" "/layers/cleaner/addons"
 install_layer "cleaner"
 rm "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
 
+install_github_release "Source2ZE" "ServerListPlayersFix" "linux" "/layers/listfix"
 install_layer "listfix"
 
+install_github_release "Cruze03" "GameBanFix" "linux" "/layers/banfix"
 install_layer "banfix"
 
 if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
 
+    install_github_release "zer0k-z" "wscleaner" "linux" "/layers/sql_mm"
     install_layer "wscleaner"
 else
     install_layer "cssplugins"
@@ -74,17 +137,6 @@ fi
 install_layer "configs"
 
 # cs2kz cfg (STUPID TXT FILE)
-modify_config() {
-    local file="$1"
-    local key="$2"
-    local value="$3"
-    local escaped_value=$(printf '%s' "$value" | sed -e 's/[\x00-\x1F\x7F]/\\&/g' -e 's/[\/&]/\\&/g')
-    if grep -q "\"$key\"" "$file"; then
-        sed -i "s/\(\"$key\"[[:space:]]*\)\"[^\"]*\"/\1\"$escaped_value\"/" "$file"
-    else
-        echo "Warning: Key '$key' not found in $file"
-    fi
-}
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "apiKey" "$CS2KZ_APIKEY"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "user" "$DB_USER"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PASS"
@@ -92,14 +144,14 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
 
-if check_file "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"; then
+if [[ ! -f  "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" ]]; then
     jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
         '.Discord_WebHook = $webhook' \
         "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
     mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
 fi
 
-if check_file "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"; then
+if [[ ! -f  "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" ]]; then
     jq --arg webhook "$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD" \
         --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
@@ -110,14 +162,14 @@ if check_file "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"; then
     mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
 fi
 
-if check_file "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"; then
+if [[ ! -f  "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" ]]; then
     jq --arg apikey "$SVLIST_APIKEY" \
         '."server-api-key" = $apikey' \
         "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" > "/tmp/CS2ServerList.json"
     mv "/tmp/CS2ServerList.json" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"
 fi
 
-if check_file "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"; then
+if [[ ! -f  "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" ]]; then
     jq --arg host "$DB_HOST:$DB_PORT" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
@@ -127,7 +179,7 @@ if check_file "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"; then
     mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
 fi
 
-if check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json"; then
+if [[ ! -f  "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" ]]; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
@@ -137,7 +189,7 @@ if check_file "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDu
     mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
 fi
 
-if check_file "$cssharp_cfg_dir/Clientprefs/Clientprefs.json"; then
+if [[ ! -f  "$cssharp_cfg_dir/Clientprefs/Clientprefs.json" ]]; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
@@ -147,7 +199,7 @@ if check_file "$cssharp_cfg_dir/Clientprefs/Clientprefs.json"; then
     mv "/tmp/Clientprefs.json" "$cssharp_cfg_dir/Clientprefs/Clientprefs.json"
 fi
 
-if check_file "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"; then
+if [[ ! -f  "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" ]]; then
     jq --arg host "$DB_HOST" \
         --arg user "$DB_USER" \
         --arg pass "$DB_PASS" \
@@ -162,8 +214,9 @@ fi
 if [[ "${ACCEL,,}" == "cs2" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 elif [[ "${ACCEL,,}" == "css" ]]; then
+    install_github_release "FUNPLAY-pro-CS2" "AcceleratorCSS" "addons" "/layers/accelcss/addons"
     install_layer "accelcss"
-    install_mount "$ID/addons/AcceleratorCSS/logs" "addons/AcceleratorCSS/logs"
+    install_mount "$ID/logs/accelcss" "addons/AcceleratorCSS/logs"
     echo "ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 else
     echo ";ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
@@ -183,8 +236,12 @@ CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 ;MENUEXPORT addons/MenusExport/bin/MenusExport
-WSCLEANER addons/wscleaner/bin/wscleaner
+
 EOF
+
+if [[ "${MAPTEST,,}" == "true" ]]; then
+    echo "WSCLEANER addons/wscleaner/bin/wscleaner" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+fi
 
 # Create server cfg
 rm -f "$server_dir/game/csgo/cfg/server.cfg"
@@ -217,11 +274,10 @@ install_mount "configs/addons/counterstrikesharp/configs/admin_overrides.json" "
 install_mount "configs/addons/counterstrikesharp/configs/admins.json" "addons/counterstrikesharp/configs/admins.json"
 
 install_mount "$ID/logs" "logs"
-install_mount "$ID/addons/counterstrikesharp/logs" "addons/counterstrikesharp/logs"
-install_mount "$ID/addons/AcceleratorCS2/dumps" "addons/AcceleratorCS2/dumps"
+install_mount "$ID/logs/counterstrikesharp" "addons/counterstrikesharp/logs"
+install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "$ID/logs/chat" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
 
-install_mount "kzdemos" "kzdemos"
 install_mount "kzreplays" "kzreplays"
 
 rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
@@ -234,13 +290,5 @@ if [[ "${WHITELIST,,}" = "true" ]]; then
     install_layer "whitelist"
 fi
 
-# temporary disable stealth module until fixed
-rm -rf "$server_dir/game/csgo/addons/StatusBlocker"
-#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin"
-#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_StealthModule"
-rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/K4-GOTV"
-rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/StrafeHUD"
-#rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/shared/CS2-SimpleAdminApi"
-
 # Run the server.
-"$server_dir/game/cs2.sh" -dedicated -condebug -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
+"$server_dir/game/cs2.sh" -dedicated -condebug -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
