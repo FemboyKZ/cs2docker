@@ -30,13 +30,26 @@ install_mount() {
 install_github_release() {
     local owner="$1"
     local repo="$2"
-    local asset_pattern="$3"   # grep pattern to match the asset filename
+    local asset_pattern="$3"
     local install_dir="$4"
-    local version_file="/mounts/$ID/${repo}_version.txt"
+    local version_file="/mounts/${repo}_version.txt"
+
+    local release_json
+    release_json=$(curl -sSL \
+        ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
+        "https://api.github.com/repos/$owner/$repo/releases?per_page=1")
+
+    # Check if we got an array back, otherwise it's an API error
+    if ! echo "$release_json" | jq -e 'type == "array"' > /dev/null 2>&1; then
+        echo "ERROR: GitHub API error for $owner/$repo:"
+        echo "$release_json" | jq -r '.message // .'
+        return 1
+    fi
+
+    release_json=$(echo "$release_json" | jq '.[0]')
 
     local latest
-    latest=$(curl -sSL "https://api.github.com/repos/$owner/$repo/releases/latest" \
-        | jq -r '.tag_name')
+    latest=$(echo "$release_json" | jq -r '.tag_name')
 
     local installed=""
     if [[ -f "$version_file" ]]; then
@@ -48,9 +61,40 @@ install_github_release() {
     if [[ "$latest" != "$installed" ]]; then
         echo "Installing $repo: $latest"
         local asset_url
-        asset_url=$(curl -sSL "https://api.github.com/repos/$owner/$repo/releases/latest" \
-            | jq -r --arg pat "$asset_pattern" '.assets[] | select(.name | test($pat)) | .browser_download_url')
-        curl -sSL "$asset_url" | tar -xz -C "$install_dir"
+        asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
+            '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
+
+        if [[ -z "$asset_url" ]]; then
+            echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
+            echo "Available assets:"
+            echo "$release_json" | jq -r '.assets[].name'
+            return 1
+        fi
+
+        local tmp_file="/tmp/${repo}_${latest}"
+        curl -sSL "$asset_url" -o "$tmp_file"
+
+        local file_type
+        file_type=$(file --brief --mime-type "$tmp_file")
+
+        case "$file_type" in
+            application/zip)
+                unzip -o -q "$tmp_file" -d "$install_dir"
+                ;;
+            application/gzip|application/x-gzip)
+                tar -xz --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
+                ;;
+            application/x-tar)
+                tar -x --overwrite --no-same-permissions -f "$tmp_file" -C "$install_dir"
+                ;;
+            *)
+                echo "ERROR: Unknown file type '$file_type' for $repo asset"
+                rm -f "$tmp_file"
+                return 1
+                ;;
+        esac
+
+        rm -f "$tmp_file"
         echo "$latest" > "$version_file"
     else
         echo "$repo already up to date: $installed"
@@ -80,7 +124,7 @@ fi
 
 if [[ "$mm_latest" != "$mm_installed" ]]; then
     echo "Installing metamod: $mm_latest"
-    curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$mm_latest" | tar -xz -C "/layers/mm"
+    curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$mm_latest" | tar -xz --overwrite --no-same-permissions -C "/layers/mm"
     echo "$mm_latest" > "$MM_VERSION_FILE"
 else
     echo "Metamod already up to date: $mm_installed"
@@ -90,20 +134,20 @@ install_layer "mm"
 rm "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_dir/game/csgo/gameinfo.gi"
 
-install_github_release "Source2ZE" "AcceleratorCS2" "addons" "/layers/accel"
+install_github_release "Source2ZE" "AcceleratorCS2" "addon" "/layers/accel"
 install_layer "accel"
-rm "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
+rm -rf "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
 
 install_github_release "KZGlobalTeam" "cs2kz-metamod" "linux" "/layers/kz"
 install_layer "kz"
-rm "$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
+rm -rf "$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
 
-install_github_release "roflmuffin" "CounterStrikeSharp" "linux-with-runtime" "/layers/cssharp"
+install_github_release "roflmuffin" "CounterStrikeSharp" "with-runtime-linux" "/layers/cssharp"
 install_layer "cssharp"
 
 install_github_release "Source2ZE" "MultiAddonManager" "linux" "/layers/mam"
 install_layer "mam"
-rm "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
+rm -rf "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
 
 install_github_release "zer0k-z" "sql_mm" "linux" "/layers/sql_mm"
 install_layer "sql_mm"
@@ -113,7 +157,7 @@ install_layer "ccvar"
 
 install_github_release "Source2ZE" "CleanerCS2" "CleanerCS2" "/layers/cleaner/addons"
 install_layer "cleaner"
-rm "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
+rm -rf "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
 
 install_github_release "Source2ZE" "ServerListPlayersFix" "linux" "/layers/listfix"
 install_layer "listfix"
@@ -214,7 +258,7 @@ fi
 if [[ "${ACCEL,,}" == "cs2" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 elif [[ "${ACCEL,,}" == "css" ]]; then
-    install_github_release "FUNPLAY-pro-CS2" "AcceleratorCSS" "addons" "/layers/accelcss/addons"
+    install_github_release "FUNPLAY-pro-CS2" "AcceleratorCSS" "linux" "/layers/accelcss/addons"
     install_layer "accelcss"
     install_mount "$ID/logs/accelcss" "addons/AcceleratorCSS/logs"
     echo "ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
@@ -236,7 +280,6 @@ CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 ;MENUEXPORT addons/MenusExport/bin/MenusExport
-
 EOF
 
 if [[ "${MAPTEST,,}" == "true" ]]; then
