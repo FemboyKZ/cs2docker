@@ -25,11 +25,11 @@ install_layer() {
     if [[ -f "$latest_file" ]]; then
         local ver
         ver=$(cat "$latest_file")
-        local src="/watchdog/layers/$name/builds/$ver${subdir:+/$subdir}"
-        cp -rf "$src"/* "$server_dir/game/csgo"
+        local src="/watchdog/layers/$name/builds/$ver"
+        cp -rf "$src"/* "$server_dir/game/csgo${subdir:+/$subdir}"
     else
-        local src="/layers/$name${subdir:+/$subdir}"
-        cp -rf "$src"/* "$server_dir/game/csgo"
+        local src="/layers/$name"
+        cp -rf "$src"/* "$server_dir/game/csgo${subdir:+/$subdir}"
     fi
 }
 
