@@ -14,7 +14,7 @@ cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/configs" "/mounts/$ID"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/logs/chat" "/mounts/$ID/dumps" "/mounts/$ID/logs/accelcss"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/logs/chat" "/mounts/$ID/dumps"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
@@ -165,14 +165,8 @@ if [[ ! -f  "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" ]]; then
 fi
 
 # Create metaplugins.ini for metamod
-if [[ "${ACCEL,,}" == "cs2" ]]; then
+if [[ "${ACCEL,,}" == "cs2" || "${ACCEL,,}" == "true" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-elif [[ "${ACCEL,,}" == "css" ]]; then
-    install_layer "accelcss"
-    install_mount "$ID/logs/accelcss" "addons/AcceleratorCSS/logs"
-    echo "ACCELCSS addons/AcceleratorCSS/bin/linuxsteamrt64/AcceleratorCSS" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-else
-    echo ";ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 fi
 
 # I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.

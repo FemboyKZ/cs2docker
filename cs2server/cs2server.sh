@@ -37,13 +37,6 @@ for (( first=1;; first=0 )); do
     done
     [ $layers_ok -eq 1 ] || continue
 
-    if [[ "${ACCEL,,}" == "css" ]]; then
-        ver="$(read_layer_ver accelcss)"
-        if [ -z "$ver" ] || [ ! -d "/watchdog/layers/accelcss/builds/$ver" ]; then
-            continue
-        fi
-    fi
-
     rm -rf "$server_dir"/*
     # Hold shared lock on layers (blocks cleanup) and shared lock on cs2 build dir
     (

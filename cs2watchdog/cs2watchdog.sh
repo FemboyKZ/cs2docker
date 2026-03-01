@@ -27,15 +27,14 @@ install_github_release() {
     local latest
     latest=$(echo "$release_json" | jq -r '.tag_name')
 
-    if [ -d "$builds_dir/$latest" ]; then
-        echo "$name already up to date: $latest"
+    if [ -d "$builds_dir/$latest" ] && [ -n "$(ls -A "$builds_dir/$latest")" ]; then
         return 0
     fi
 
     echo "Installing $name: $latest"
     local asset_url
     asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
-        '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
+        '[.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not))][0].browser_download_url // empty')
 
     if [[ -z "$asset_url" ]]; then
         echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
@@ -45,37 +44,35 @@ install_github_release() {
     fi
 
     local tmp_archive="/tmp/${name}_${latest}"
-    curl -sSL "$asset_url" -o "$tmp_archive"
+    rm -f "$tmp_archive"
+    if ! curl -fsSL "$asset_url" -o "$tmp_archive"; then
+        echo "ERROR: Failed to download asset for $name: $asset_url"
+        rm -f "$tmp_archive"
+        return 1
+    fi
 
     rm -rf "$tmp_dir"
     mkdir -p "$tmp_dir"
 
-    local file_type
-    file_type=$(file --brief --mime-type "$tmp_archive")
-
-    case "$file_type" in
-        application/zip)
+    case "$asset_url" in
+        *.zip)
             unzip -o -q "$tmp_archive" -d "$tmp_dir"
             ;;
-        application/gzip|application/x-gzip)
-            tar -xz --no-same-permissions -f "$tmp_archive" -C "$tmp_dir"
-            ;;
-        application/x-tar)
+        *.tar.gz|*.tgz|*.tar.xz|*.tar)
             tar -x --no-same-permissions -f "$tmp_archive" -C "$tmp_dir"
             ;;
         *)
-            echo "ERROR: Unknown file type '$file_type' for $name"
+            echo "ERROR: Unknown file extension for $name: $asset_url"
             rm -f "$tmp_archive"
             rm -rf "$tmp_dir"
             return 1
             ;;
-    esac
+    esac || { rm -f "$tmp_archive"; rm -rf "$tmp_dir"; return 1; }
 
     rm -f "$tmp_archive"
     mkdir -p "$builds_dir"
     mv "$tmp_dir" "$builds_dir/$latest"
 
-    # Atomically update latest.txt
     echo "$latest" > "/tmp/layer_latest.txt"
     mv "/tmp/layer_latest.txt" "$latest_file"
 }
@@ -89,8 +86,7 @@ install_metamod() {
     local latest
     latest=$(curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/mmsource-latest-linux")
 
-    if [ -d "$builds_dir/$latest" ]; then
-        echo "Metamod already up to date: $latest"
+    if [ -d "$builds_dir/$latest" ] && [ -n "$(ls -A "$builds_dir/$latest")" ]; then
         return 0
     fi
 
@@ -108,7 +104,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "accelcss")
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -123,17 +119,14 @@ update_plugins() {
     install_github_release "Source2ZE"       "ServerListPlayersFix" "linux"                  "listfix"
     install_github_release "Cruze03"         "GameBanFix"           "linux"                  "banfix"
     install_github_release "zer0k-z"         "wscleaner"            "linux"                  "wscleaner"
-    install_github_release "FUNPLAY-pro-CS2" "AcceleratorCSS"       "linux"                  "accelcss"
 
-    # Clean old plugin builds not currently in use by any server
     (
         flock -nx 200 || exit 0
-        for name in "${layer_names[@]}"; do
-            local latest_file="/watchdog/layers/$name/latest.txt"
-            [ -f "$latest_file" ] || continue
-            local latest
-            latest=$(cat "$latest_file")
-            find "/watchdog/layers/$name/builds" -mindepth 1 -maxdepth 1 -type d ! -name "$latest" \
+        for _cleanup_name in "${layer_names[@]}"; do
+            _cleanup_latest_file="/watchdog/layers/$_cleanup_name/latest.txt"
+            [ -f "$_cleanup_latest_file" ] || continue
+            _cleanup_latest=$(cat "$_cleanup_latest_file")
+            find "/watchdog/layers/$_cleanup_name/builds" -mindepth 1 -maxdepth 1 -type d ! -name "$_cleanup_latest" \
                 -exec rm -rf {} + 2>/dev/null || true
         done
     ) 200>/watchdog/layers/.lockfile || true
