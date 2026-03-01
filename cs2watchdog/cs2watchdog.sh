@@ -34,7 +34,7 @@ install_github_release() {
     echo "Installing $name: $latest"
     local asset_url
     asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
-        '[.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not))][0].browser_download_url // empty')
+        '[.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not) and (.name | test("Website") | not))][0].browser_download_url // empty')
 
     if [[ -z "$asset_url" ]]; then
         echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
@@ -104,11 +104,13 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner")
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "statusblocker" "admin" "weaponpaints" "playersettings" "anybaselib" "menumanager")
 
     rm -rf "/watchdog/layers/.tmp"
 
     install_metamod
+
+    # MM Plugins
     install_github_release "Source2ZE"       "AcceleratorCS2"       "addon"                  "accel"
     install_github_release "KZGlobalTeam"    "cs2kz-metamod"        'linux-master\.tar\.gz$' "kz"
     install_github_release "roflmuffin"      "CounterStrikeSharp"   "with-runtime-linux"     "cssharp"
@@ -119,6 +121,18 @@ update_plugins() {
     install_github_release "Source2ZE"       "ServerListPlayersFix" "linux"                  "listfix"
     install_github_release "Cruze03"         "GameBanFix"           "linux"                  "banfix"
     install_github_release "zer0k-z"         "wscleaner"            "linux"                  "wscleaner"
+
+    # CSS Plugins
+    install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "linux"                  "statusblocker"
+    install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "SimpleAdmin"            "admin"
+    install_github_release "Nereziel"        "cs2-WeaponPaints"     "WeaponPaints\.zip"      "weaponpaints"
+    install_github_release "NickFox007"      "PlayerSettingsCS2"    "PlayerSettings"         "playersettings"
+    install_github_release "NickFox007"      "AnyBaseLibCS2"        "AnyBaseLib"             "anybaselib"
+    install_github_release "NickFox007"      "MenuManagerCS2"       "MenuManager"            "menumanager"
+    install_github_release "FemboyKZ"        "cs2docker-autorestart""AutoRestart"            "autorestart"
+
+    # 18 plugins, twice a minute
+    # 18 x 2 x 60 = 2160 / 5000
 
     (
         flock -nx 200 || exit 0
