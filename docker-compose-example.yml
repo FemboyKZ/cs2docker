@@ -6,6 +6,8 @@ services:
     user: 1000:1000 # Change to your actual user ID and group ID
     tty: true
     stdin_open: true
+    env_file:
+      - .env.global.example # Change to your actual global env file
     volumes:
       - ./layers:/layers
       - ./watchdog:/watchdog
@@ -22,7 +24,7 @@ services:
         max-file: "3"
     network_mode: host
     env_file:
-      - .env.global
+      - .env.global.example # Change to your actual global env file
       - .env.example # Change to your actual env file
     volumes:
       - ./watchdog:/watchdog
