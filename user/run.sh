@@ -12,29 +12,37 @@ rm -rf "$server_dir/game/bin/linuxsteamrt64/cs2"
 cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64/cs2"
 
 # Make sure necessary directories exist
-mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/tmp"
-mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/configs" "/mounts/$ID"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/logs/chat" "/mounts/$ID/dumps"
+mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
+mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs" "/mounts/configs/counterstrikesharp"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
 install_layer() {
     local name="$1"
     local subdir="${2:-}"
+    local out_subdir="${3:-}"
     local latest_file="/watchdog/layers/$name/latest.txt"
+    local base
     if [[ -f "$latest_file" ]]; then
         local ver
         ver=$(cat "$latest_file")
-        local src="/watchdog/layers/$name/builds/$ver"
-        cp -rf "$src"/* "$server_dir/game/csgo${subdir:+/$subdir}"
+        base="/watchdog/layers/$name/builds/$ver"
     else
-        local src="/layers/$name"
-        cp -rf "$src"/* "$server_dir/game/csgo${subdir:+/$subdir}"
+        base="/layers/$name"
+    fi
+    if [[ -n "$subdir" ]]; then
+        for src in "$base"/$subdir; do
+            cp -rf "$src"/* "$server_dir/game/csgo${out_subdir:+/$out_subdir}"
+        done
+    else
+        cp -rf "$base"/* "$server_dir/game/csgo${out_subdir:+/$out_subdir}"
     fi
 }
 
 install_mount() {
     rm -rf "$server_dir/game/csgo/$2"
+    mkdir -p "$(dirname "$server_dir/game/csgo/$2")"
     ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
 }
 
@@ -50,127 +58,179 @@ modify_config() {
     fi
 }
 
+install_github_release() {
+    local owner="$1"
+    local repo="$2"
+    local asset_pattern="$3"
+    local install_dir="$4"
+    local subdir="${5:-*}" # subdir within extracted archive to copy from; * = skip wrapper dir
+    local version_file="/watchdog/gh/${repo}/version.txt"
+    local cache_dir="/watchdog/gh/${repo}/files"
+    local tmp_dir="/tmp/gh_${repo}"
+    local tmp_archive="/tmp/gh_${repo}.archive"
+
+    local release_json
+    release_json=$(curl -sSL \
+        ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
+        "https://api.github.com/repos/$owner/$repo/releases?per_page=1")
+
+    # Check if we got an array back, otherwise it's an API error
+    if ! echo "$release_json" | jq -e 'type == "array"' > /dev/null 2>&1; then
+        echo "ERROR: GitHub API error for $owner/$repo:"
+        echo "$release_json" | jq -r '.message // .'
+        return 1
+    fi
+
+    release_json=$(echo "$release_json" | jq '.[0]')
+
+    local latest
+    latest=$(echo "$release_json" | jq -r '.tag_name')
+
+    local installed=""
+    if [[ -f "$version_file" ]]; then
+        installed=$(cat "$version_file")
+    fi
+
+    if [[ "$latest" != "$installed" ]]; then
+        echo "Installing $repo $latest..."
+
+        local asset_url
+        asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
+            '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
+
+        if [[ -z "$asset_url" ]]; then
+            echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
+            echo "Available assets:"
+            echo "$release_json" | jq -r '.assets[].name'
+            return 1
+        fi
+
+        rm -rf "$tmp_dir"
+        mkdir -p "$tmp_dir"
+        curl -sSL "$asset_url" -o "$tmp_archive"
+
+        case "$asset_url" in
+            *.zip)
+                unzip -o -q "$tmp_archive" -d "$tmp_dir"
+                ;;
+            *.tar.gz|*.tgz|*.tar.xz|*.tar)
+                tar -x --no-same-permissions -f "$tmp_archive" -C "$tmp_dir"
+                ;;
+            *)
+                echo "ERROR: Unknown file extension for $repo: $asset_url"
+                rm -f "$tmp_archive"
+                rm -rf "$tmp_dir"
+                return 1
+                ;;
+        esac || { rm -f "$tmp_archive"; rm -rf "$tmp_dir"; return 1; }
+
+        rm -f "$tmp_archive"
+
+        # Extract into persistent cache, replacing any previous version.
+        rm -rf "$cache_dir"
+        mkdir -p "$cache_dir"
+        for src in "$tmp_dir"/${subdir:-*}; do
+            if [[ -d "$src" ]]; then
+                cp -rf "$src"/* "$cache_dir/"
+            else
+                cp -rf "$src" "$cache_dir/"
+            fi
+        done
+
+        rm -rf "$tmp_dir"
+        echo "$latest" > "$version_file"
+        echo "$repo installed: $latest"
+    else
+        echo "$repo already up to date: $installed"
+    fi
+
+    # Always copy from cache into the (freshly built) server dir.
+    rm -rf "$install_dir"
+    mkdir -p "$install_dir"
+    find "$cache_dir" -maxdepth 1 -mindepth 1 -exec cp -rf {} "$install_dir/" \;
+}
+
+# install MetadMod
 install_layer "mm"
-rm "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_dir/game/csgo/gameinfo.gi"
 
-install_layer "accel" "addons"
-rm -rf "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
-
+# Install MM Plugins
+install_layer "accel" "" "addons"
 install_layer "kz"
-rm -rf "$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
-
 install_layer "cssharp"
-
 install_layer "mam"
-rm -rf "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
-
 install_layer "sql_mm"
-
 install_layer "ccvar"
-
-install_layer "cleaner" "addons"
-rm -rf "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
-
+install_layer "cleaner" "" "addons"
 install_layer "listfix"
-
 install_layer "banfix"
 
+# Install CSS plugins
+install_layer "autorestart"
+
+# Maptest or FKZ plugins
 if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
-
     install_layer "wscleaner"
 else
-    install_layer "cssplugins"
+    # Misc plugins
+    # Minor plugins rarely update, so we can just check once at startup
 
-    install_layer "weaponpaints"
+    install_layer "cs2menumanager"
 
-    install_layer "statusblocker"
+    #install_github_release "M-archand" "cs2-rockthevote" "RockTheVote" "/layers/rtv/RockTheVote"
+    install_layer "rtv" "" "addons/counterstrikesharp/plugins"
+
+    #install_github_release "FemboyKZ" "cs2-simple-guns-menu" "SimpleGunMenuPlugin" "/layers/guns/SimpleGunMenuPlugin"
+    install_layer "guns" "" "addons/counterstrikesharp/plugins"
+
+    #install_github_release "FemboyKZ" "anti-fun" "cs2" "/layers/antifun"
+    install_layer "antifun"
+
+    #install_github_release "FemboyKZ" "CustomStatus" "CStatus" "/layers/cstatus"
+    install_layer "cstatus"
+
+    install_layer "htmlfix"
+    install_layer "motdfix"
+
+    # CSS Deps
+    #install_layer "playersettings"
+    #install_layer "anybaselib"
+    #install_layer "menumanager"
+
+    # SimpleAdmin
+    #install_layer "admin" "" "addons"
+    #install_layer "statusblocker" "*" "addons"
+    #mv "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_FunCommands" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/disabled"
+
+    # WeaponPaints
+    #install_layer "weaponpaints" "" "addons/counterstrikesharp/plugins"
+    #cp -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/gamedata"/. "$server_dir/game/csgo/addons/counterstrikesharp/gamedata/"
+    #rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/gamedata"
 fi
 
-install_layer "configs"
-
-# cs2kz cfg (STUPID TXT FILE)
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "apiKey" "$CS2KZ_APIKEY"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "user" "$DB_USER"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PASS"
-
-# cssharp configs
-cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
-
-if [[ ! -f  "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" ]]; then
-    jq --arg webhook "$DC_CHAT_WEBHOOK?thread_id=$DC_CHAT_THREAD" \
-        '.Discord_WebHook = $webhook' \
-        "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json" > "/tmp/Chat_Logger.json"
-    mv "/tmp/Chat_Logger.json" "$cssharp_cfg_dir/Chat_Logger/Chat_Logger.json"
+# Install whitelist if enabled
+if [[ "${WHITELIST,,}" = "true" ]]; then
+    install_layer "whitelist"
+    install_mount "configs/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
 fi
 
-if [[ ! -f  "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" ]]; then
-    jq --arg webhook "$DC_CONNECT_WEBHOOK?thread_id=$DC_CONNECT_THREAD" \
-        --arg host "$DB_HOST" \
-        --arg user "$DB_USER" \
-        --arg pass "$DB_PASS" \
-        --arg name "$GL_DB_NAME" \
-        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .DiscordWebhook = $webhook' \
-        "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json" > "/tmp/ConnectionLogs.json"
-    mv "/tmp/ConnectionLogs.json" "$cssharp_cfg_dir/ConnectionLogs/ConnectionLogs.json"
-fi
-
-if [[ ! -f  "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" ]]; then
-    jq --arg apikey "$SVLIST_APIKEY" \
-        '."server-api-key" = $apikey' \
-        "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json" > "/tmp/CS2ServerList.json"
-    mv "/tmp/CS2ServerList.json" "$cssharp_cfg_dir/CS2ServerList/CS2ServerList.json"
-fi
-
-if [[ ! -f  "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" ]]; then
-    jq --arg host "$DB_HOST:$DB_PORT" \
-        --arg user "$DB_USER" \
-        --arg pass "$DB_PASS" \
-        --arg name "$GL_DB_NAME" \
-        '.DatabaseParams.Host = $host | .DatabaseParams.User = $user | .DatabaseParams.Password = $pass | .DatabaseParams.Name = $name' \
-        "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json" > "/tmp/PlayerSettings.json"
-    mv "/tmp/PlayerSettings.json" "$cssharp_cfg_dir/PlayerSettings/PlayerSettings.json"
-fi
-
-if [[ ! -f  "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" ]]; then
-    jq --arg host "$DB_HOST" \
-        --arg user "$DB_USER" \
-        --arg pass "$DB_PASS" \
-        --arg name "$GL_DB_NAME" \
-        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name' \
-        "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" > "/tmp/Config.json"
-    mv "/tmp/Config.json" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/AccountDupFinder/Config.json" # this has cfg stored in plugin folder for some reason
-fi
-
-if [[ ! -f  "$cssharp_cfg_dir/Clientprefs/Clientprefs.json" ]]; then
-    jq --arg host "$DB_HOST" \
-        --arg user "$DB_USER" \
-        --arg pass "$DB_PASS" \
-        --arg name "$GL_DB_NAME" \
-        '.DatabaseHost = $host | .DatabaseUsername = $user | .DatabasePassword = $pass | .DatabaseName = $name' \
-        "$cssharp_cfg_dir/Clientprefs/Clientprefs.json" > "/tmp/Clientprefs.json"
-    mv "/tmp/Clientprefs.json" "$cssharp_cfg_dir/Clientprefs/Clientprefs.json"
-fi
-
-if [[ ! -f  "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" ]]; then
-    jq --arg host "$DB_HOST" \
-        --arg user "$DB_USER" \
-        --arg pass "$DB_PASS" \
-        --arg name "$GL_DB_NAME" \
-        --arg site "$SKINSITE_URL" \
-        '.DatabaseHost = $host | .DatabaseUser = $user | .DatabasePassword = $pass | .DatabaseName = $name | .Website = $site' \
-        "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json" > "/tmp/WeaponPaints.json"
-    mv "/tmp/WeaponPaints.json" "$cssharp_cfg_dir/WeaponPaints/WeaponPaints.json"
-fi
+# Cleanup cfg files before installing our own, to prevent stale configs from previous versions.
+rm -rf "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
+rm -rf "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
+rm -rf "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+rm -rf "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
+rm -rf "$server_dir/game/csgo/cfg/server.cfg"
+find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 # Create metaplugins.ini for metamod
 if [[ "${ACCEL,,}" == "cs2" || "${ACCEL,,}" == "true" ]]; then
     echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 fi
 
-# I like to use metaplugins.ini to load plugins, so remove all other vdf files to avoid confusion.
-find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
+if [[ "${MAPTEST,,}" == "true" ]]; then
+    echo "WSCLEANER addons/wscleaner/bin/wscleaner" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+fi
 
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
@@ -182,19 +242,11 @@ MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
-;MENUEXPORT addons/MenusExport/bin/MenusExport
 EOF
 
-if [[ "${MAPTEST,,}" == "true" ]]; then
-    echo "WSCLEANER addons/wscleaner/bin/wscleaner" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-fi
-
 # Create server cfg
-rm -f "$server_dir/game/csgo/cfg/server.cfg"
 cat <<EOF > "$server_dir/game/csgo/cfg/server.cfg"
 hostname "$HOSTNAME"
-// hostip 0.0.0.0
-// hostport $PORT
 sv_password ""
 rcon_password "$RCON_PASSWORD"
 sv_hibernate_when_empty false
@@ -206,36 +258,56 @@ exec fkz-print.cfg
 // exec fkz-tv.cfg
 EOF
 
-if [[ "${WHITELIST,,}" = "true" ]]; then
-    install_layer "whitelist"
-    install_mount "configs/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
-fi
-
-install_mount "configs/CS2-SimpleAdmin/CS2-SimpleAdmin.json" "addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json"
-
+# Mount static configs we create/setup manually, so they persist across plugin updates.
 install_mount "configs/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
+#install_mount "configs/fkz-settings.cfg" "cfg/fkz-settings.cfg"
+install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
+#install_mount "configs/fkz-logs.cfg" "cfg/fkz-logs.cfg"
+#install_mount "configs/fkz-tv.cfg" "cfg/fkz-tv.cfg"
 
-install_mount "configs/counterstrikesharp/core.json" "addons/counterstrikesharp/configs/core.json"
-install_mount "configs/counterstrikesharp/admin_groups.json" "addons/counterstrikesharp/configs/admin_groups.json"
-install_mount "configs/counterstrikesharp/admin_overrides.json" "addons/counterstrikesharp/configs/admin_overrides.json"
-install_mount "configs/counterstrikesharp/admins.json" "addons/counterstrikesharp/configs/admins.json"
+install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
+install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
 
+# cssharp configs
+cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
+install_mount "configs/counterstrikesharp" "addons/counterstrikesharp/configs"
+
+# cs2kz cfg (STUPID TXT FILE)
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultMode" "Vanilla"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultTimeLimit" "600.0"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "chatPrefix" "{orchid}FKZ {grey}|{default}"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "overridePlayerChat" "false"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "driver" "mysql"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "host" "$DB_HOST"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "port" "$DB_PORT"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "database" "$GL_DB_NAME"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "apiKey" "$CS2KZ_APIKEY"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "user" "$DB_USER"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PASS"
+
+# Mount logs
 install_mount "$ID/logs" "logs"
 install_mount "$ID/logs/counterstrikesharp" "addons/counterstrikesharp/logs"
 install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
-install_mount "$ID/logs/chat" "addons/counterstrikesharp/plugins/Chat_Logger/logs"
-
+# Mount replays
 install_mount "kzreplays" "kzreplays"
 
+# Mount workshop
 rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 ln -s "/mounts/$ID/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
+# Write MOTD and WebAPI key
 rm -rf "$server_dir/game/csgo/motd.txt"
 echo "$MOTD" > "$server_dir/game/csgo/motd.txt"
 
 rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
 echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
+
+ls -la "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
+ls -la "$server_dir/game/csgo/addons/counterstrikesharp/configs"
+ls -la "$server_dir/game/csgo/addons/counterstrikesharp"
+ls -la "$server_dir/game/csgo/addons/counterstrikesharp/plugins"
 
 # Run the server.
 "$server_dir/game/cs2.sh" -dedicated -condebug -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
