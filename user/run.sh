@@ -11,6 +11,9 @@ cp -rs "$build_dir"/* "$server_dir"
 rm -rf "$server_dir/game/bin/linuxsteamrt64/cs2"
 cp "$build_dir/game/bin/linuxsteamrt64/cs2" "$server_dir/game/bin/linuxsteamrt64/cs2"
 
+# Cleanup old addons to prevent stale files from previous versions.
+rm -rf "$server_dir/game/csgo/addons"
+
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs" "/mounts/configs/counterstrikesharp"
@@ -190,7 +193,7 @@ else
     #install_github_release "FemboyKZ" "CustomStatus" "CStatus" "/layers/cstatus"
     install_layer "cstatus"
 
-    install_layer "htmlfix"
+    #install_layer "htmlfix"
     install_layer "motdfix"
 
     # CSS Deps
@@ -252,6 +255,7 @@ rcon_password "$RCON_PASSWORD"
 sv_hibernate_when_empty false
 sv_hibernate_postgame_delay 0
 sv_tags "$TAGS"
+mp_autokick 0
 exec fkz-print.cfg
 // exec fkz-settings.cfg
 // exec fkz-logs.cfg
@@ -261,6 +265,7 @@ EOF
 # Mount static configs we create/setup manually, so they persist across plugin updates.
 install_mount "configs/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
+install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
 #install_mount "configs/fkz-settings.cfg" "cfg/fkz-settings.cfg"
 install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
 #install_mount "configs/fkz-logs.cfg" "cfg/fkz-logs.cfg"
@@ -277,7 +282,7 @@ install_mount "configs/counterstrikesharp" "addons/counterstrikesharp/configs"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultMode" "Vanilla"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultTimeLimit" "600.0"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "chatPrefix" "{orchid}FKZ {grey}|{default}"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "overridePlayerChat" "false"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "overridePlayerChat" "true"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "driver" "mysql"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "host" "$DB_HOST"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "port" "$DB_PORT"
@@ -310,4 +315,4 @@ ls -la "$server_dir/game/csgo/addons/counterstrikesharp"
 ls -la "$server_dir/game/csgo/addons/counterstrikesharp/plugins"
 
 # Run the server.
-"$server_dir/game/cs2.sh" -dedicated -condebug -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +mapgroup mg_custom +host_workshop_map "$WS_MAP" +exec server.cfg +game_type 3 +game_mode 0 -maxplayers 64 -nohltv
+"$server_dir/game/cs2.sh" -dedicated -condebug -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +host_workshop_map "$WS_MAP" +exec server.cfg -maxplayers 64 -nohltv
