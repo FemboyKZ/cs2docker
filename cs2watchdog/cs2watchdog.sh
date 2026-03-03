@@ -104,7 +104,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "statusblocker" "admin" "weaponpaints" "playersettings" "anybaselib" "menumanager")
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -123,13 +123,13 @@ update_plugins() {
     install_github_release "zer0k-z"         "wscleaner"            "linux"                  "wscleaner"
 
     # CSS Plugins
-    install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "linux"                  "statusblocker"
-    install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "SimpleAdmin"            "admin"
-    install_github_release "Nereziel"        "cs2-WeaponPaints"     "WeaponPaints\.zip"      "weaponpaints"
-    install_github_release "NickFox007"      "PlayerSettingsCS2"    "PlayerSettings"         "playersettings"
-    install_github_release "NickFox007"      "AnyBaseLibCS2"        "AnyBaseLib"             "anybaselib"
-    install_github_release "NickFox007"      "MenuManagerCS2"       "MenuManager"            "menumanager"
-    install_github_release "FemboyKZ"        "cs2docker-autorestart""AutoRestart"            "autorestart"
+    #install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "linux"                  "statusblocker"
+    #install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "SimpleAdmin"            "admin"
+    #install_github_release "Nereziel"        "cs2-WeaponPaints"     "WeaponPaints\.zip"      "weaponpaints"
+    #install_github_release "NickFox007"      "PlayerSettingsCS2"    "PlayerSettings"         "playersettings"
+    #install_github_release "NickFox007"      "AnyBaseLibCS2"        "AnyBaseLib"             "anybaselib"
+    #install_github_release "NickFox007"      "MenuManagerCS2"       "MenuManager"            "menumanager"
+    #install_github_release "FemboyKZ"        "cs2docker-autorestart""AutoRestart"            "autorestart"
 
     # 18 plugins, twice a minute
     # 18 x 2 x 60 = 2160 / 5000

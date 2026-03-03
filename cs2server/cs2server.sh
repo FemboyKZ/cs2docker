@@ -28,7 +28,7 @@ for (( first=1;; first=0 )); do
 
     # Verify all plugin layers have a build ready
     layers_ok=1
-    for layer_name in mm accel kz cssharp mam sql_mm ccvar cleaner listfix banfix wscleaner statusblocker admin weaponpaints playersettings anybaselib menumanager; do
+    for layer_name in mm accel kz cssharp mam sql_mm ccvar cleaner listfix banfix wscleaner; do
         ver="$(read_layer_ver "$layer_name")"
         if [ -z "$ver" ] || [ ! -d "/watchdog/layers/$layer_name/builds/$ver" ]; then
             layers_ok=0
