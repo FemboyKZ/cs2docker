@@ -2,7 +2,7 @@ FROM registry.gitlab.steamos.cloud/steamrt/sniper/sdk
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
-        jq \
+        jq sqlite3 \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
