@@ -104,7 +104,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner")
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2admin")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -121,10 +121,9 @@ update_plugins() {
     install_github_release "Source2ZE"       "ServerListPlayersFix" "linux"                  "listfix"
     install_github_release "Cruze03"         "GameBanFix"           "linux"                  "banfix"
     install_github_release "zer0k-z"         "wscleaner"            "linux"                  "wscleaner"
+    install_github_release "CounterStrike2-Plugins" "CounterStrike2-Admin" "linux"          "cs2admin"
 
     # CSS Plugins
-    #install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "linux"                  "statusblocker"
-    #install_github_release "daffyyyy"        "CS2-SimpleAdmin"      "SimpleAdmin"            "admin"
     #install_github_release "Nereziel"        "cs2-WeaponPaints"     "WeaponPaints\.zip"      "weaponpaints"
     #install_github_release "NickFox007"      "PlayerSettingsCS2"    "PlayerSettings"         "playersettings"
     #install_github_release "NickFox007"      "AnyBaseLibCS2"        "AnyBaseLib"             "anybaselib"

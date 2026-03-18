@@ -167,6 +167,7 @@ install_layer "ccvar"
 install_layer "cleaner" "" "addons"
 install_layer "listfix"
 install_layer "banfix"
+install_layer "cs2admin"
 
 # Install CSS plugins
 install_layer "autorestart"
@@ -201,11 +202,6 @@ else
     #install_layer "anybaselib"
     #install_layer "menumanager"
 
-    # SimpleAdmin
-    #install_layer "admin" "" "addons"
-    #install_layer "statusblocker" "*" "addons"
-    #mv "$server_dir/game/csgo/addons/counterstrikesharp/plugins/CS2-SimpleAdmin_FunCommands" "$server_dir/game/csgo/addons/counterstrikesharp/plugins/disabled"
-
     # WeaponPaints
     #install_layer "weaponpaints" "" "addons/counterstrikesharp/plugins"
     #cp -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/gamedata"/. "$server_dir/game/csgo/addons/counterstrikesharp/gamedata/"
@@ -237,14 +233,14 @@ fi
 
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
-;CLEANER addons/cleanercs2/cleanercs2
+CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
-;STATUSBLOCKER addons/StatusBlocker/bin/linuxsteamrt64/StatusBlocker
 CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
 MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
+ADMIN addons/CounterStrike2-Admin/bin/linuxsteamrt64/CounterStrike2-Admin
 EOF
 
 # Create server cfg
@@ -273,6 +269,8 @@ install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
 
 install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
 install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
+
+install_mount "configs/admin" "addons/CounterStrike2-Admin/configs"
 
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
