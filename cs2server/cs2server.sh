@@ -8,8 +8,9 @@ fetch_latest_cs2_version() {
 }
 
 # Fix steamclient.so ... Why is this such a mess?
-mkdir -p "/tmp/cs2home/.steam/sdk64"
+mkdir -p "/tmp/cs2home/.steam/sdk64" "/tmp/cs2home/.steam/sdk32"
 cp "/watchdog/steamcmd/linux64/steamclient.so" "/tmp/cs2home/.steam/sdk64/"
+cp "/watchdog/steamcmd/linux32/steamclient.so" "/tmp/cs2home/.steam/sdk32/"
 
 server_dir="/tmp/cs2server"
 mkdir -p "$server_dir"
