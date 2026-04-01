@@ -167,7 +167,6 @@ install_layer "ccvar"
 install_layer "cleaner" "" "addons"
 install_layer "listfix"
 install_layer "banfix"
-install_layer "cs2admin"
 
 # Install CSS plugins
 install_layer "autorestart"
