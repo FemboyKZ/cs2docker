@@ -182,8 +182,8 @@ else
 
     install_layer "cs2menumanager"
 
-    #install_github_release "M-archand" "cs2-rockthevote" "RockTheVote" "/layers/rtv/RockTheVote"
-    install_layer "rtv" "" "addons/counterstrikesharp/plugins"
+    #install_github_release "FemboyKZ" "cs2-rockthevote" "RockTheVote" "/layers/rtv/RockTheVote"
+    install_layer "rtv"
 
     #install_github_release "FemboyKZ" "cs2-simple-guns-menu" "SimpleGunMenuPlugin" "/layers/guns/SimpleGunMenuPlugin"
     install_layer "guns" "" "addons/counterstrikesharp/plugins"
@@ -240,7 +240,6 @@ MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
-ADMIN addons/CounterStrike2-Admin/bin/linuxsteamrt64/CounterStrike2-Admin
 EOF
 
 # Create server cfg
@@ -259,7 +258,7 @@ exec fkz-print.cfg
 EOF
 
 # Mount static configs we create/setup manually, so they persist across plugin updates.
-install_mount "configs/maplist.txt" "addons/counterstrikesharp/plugins/RockTheVote/maplist.txt"
+install_mount "configs/maplist.txt" "cfg/maplist.txt"
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
 #install_mount "configs/fkz-settings.cfg" "cfg/fkz-settings.cfg"
@@ -269,8 +268,6 @@ install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
 
 install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
 install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
-
-install_mount "configs/admin" "addons/CounterStrike2-Admin/configs"
 
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
@@ -306,11 +303,6 @@ echo "$MOTD" > "$server_dir/game/csgo/motd.txt"
 
 rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
 echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
-
-ls -la "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
-ls -la "$server_dir/game/csgo/addons/counterstrikesharp/configs"
-ls -la "$server_dir/game/csgo/addons/counterstrikesharp"
-ls -la "$server_dir/game/csgo/addons/counterstrikesharp/plugins"
 
 # Run the server.
 "$server_dir/game/cs2.sh" -dedicated -condebug -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +host_workshop_map "$WS_MAP" +exec server.cfg -maxplayers 64 -nohltv
