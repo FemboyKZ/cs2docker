@@ -171,6 +171,12 @@ install_layer "cs2admin"
 
 # Install CSS plugins
 install_layer "autorestart"
+cat <<EOF > "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins/AutoRestart.json"
+{
+  "daily_restart_time": "$RESTART_TIME",
+  "ConfigVersion": 1
+}
+EOF
 
 # Maptest or FKZ plugins
 if [[ "${MAPTEST,,}" == "true" ]]; then

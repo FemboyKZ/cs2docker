@@ -20,8 +20,6 @@ read_layer_ver() {
     [ -f "$file" ] && cat "$file" || echo ""
 }
 
-export daily_restart_time="03:00"
-
 for (( first=1;; first=0 )); do
     [ $first -eq 0 ] && sleep 10
 
@@ -44,6 +42,6 @@ for (( first=1;; first=0 )); do
     # Hold shared lock on layers (blocks cleanup) and shared lock on cs2 build dir
     (
         flock -s 200
-        flock -ns "$build_dir/.lockfile" --command "HOME=\"/tmp/cs2home\" build_ver=\"$build_ver\" build_dir=\"$build_dir\" server_dir=\"$server_dir\" daily_restart_time=\"$daily_restart_time\" /user/run.sh"
+        flock -ns "$build_dir/.lockfile" --command "HOME=\"/tmp/cs2home\" build_ver=\"$build_ver\" build_dir=\"$build_dir\" server_dir=\"$server_dir\" /user/run.sh"
     ) 200>/watchdog/layers/.lockfile
 done
