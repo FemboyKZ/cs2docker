@@ -17,7 +17,7 @@ rm -rf "$server_dir/game/csgo/addons"
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs" "/mounts/configs/counterstrikesharp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps" "/mounts/$ID/configs"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
@@ -167,6 +167,7 @@ install_layer "ccvar"
 install_layer "cleaner" "" "addons"
 install_layer "listfix"
 install_layer "banfix"
+install_layer "cs2kzstatus"
 
 # Install CSS plugins
 install_layer "autorestart"
@@ -197,7 +198,7 @@ else
     install_layer "antifun"
 
     #install_github_release "FemboyKZ" "CustomStatus" "CStatus" "/layers/cstatus"
-    install_layer "cstatus"
+    #install_layer "cstatus"
 
     #install_layer "htmlfix"
     install_layer "motdfix"
@@ -220,10 +221,7 @@ if [[ "${WHITELIST,,}" = "true" ]]; then
 fi
 
 # Cleanup cfg files before installing our own, to prevent stale configs from previous versions.
-rm -rf "$server_dir/game/csgo/addons/AcceleratorCS2/config.json"
-rm -rf "$server_dir/game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg"
 rm -rf "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-rm -rf "$server_dir/game/csgo/addons/cleanercs2/config.cfg"
 rm -rf "$server_dir/game/csgo/cfg/server.cfg"
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
@@ -245,6 +243,7 @@ MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
+CS2KZRTS addons/mm-cs2kz-rts/bin/linuxsteamrt64/mm-cs2kz-rts
 EOF
 
 # Create server cfg
@@ -271,8 +270,11 @@ install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
 #install_mount "configs/fkz-logs.cfg" "cfg/fkz-logs.cfg"
 #install_mount "configs/fkz-tv.cfg" "cfg/fkz-tv.cfg"
 
+install_mount "$ID/configs/mm-rts.cfg" "cfg/mm-cs2kz-rts/mm-rts.cfg"
+
 install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
 install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
+install_mount "configs/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
 
 # cssharp configs
 cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
