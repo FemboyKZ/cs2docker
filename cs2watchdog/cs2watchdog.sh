@@ -104,7 +104,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner")
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -121,6 +121,7 @@ update_plugins() {
     install_github_release "Source2ZE"       "ServerListPlayersFix" "linux"                  "listfix"
     install_github_release "Cruze03"         "GameBanFix"           "linux"                  "banfix"
     install_github_release "zer0k-z"         "wscleaner"            "linux"                  "wscleaner"
+    install_github_release "FemboyKZ"        "cs2kz-realtime-status" "linux"                  "cs2kzstatus"
 
     # CSS Plugins
     #install_github_release "Nereziel"        "cs2-WeaponPaints"     "WeaponPaints\.zip"      "weaponpaints"
@@ -129,8 +130,8 @@ update_plugins() {
     #install_github_release "NickFox007"      "MenuManagerCS2"       "MenuManager"            "menumanager"
     #install_github_release "FemboyKZ"        "cs2docker-autorestart""AutoRestart"            "autorestart"
 
-    # 18 plugins, twice a minute
-    # 18 x 2 x 60 = 2160 / 5000
+    # 12 plugins, twice a minute
+    # 12 x 2 x 60 = 1440 / 5000
 
     (
         flock -nx 200 || exit 0
