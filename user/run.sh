@@ -168,6 +168,7 @@ install_layer "cleaner" "" "addons"
 install_layer "listfix"
 install_layer "banfix"
 install_layer "cs2kzstatus"
+install_layer "cs2admin"
 
 # Install CSS plugins
 install_layer "autorestart"
@@ -244,6 +245,7 @@ CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 CS2KZRTS addons/mm-cs2kz-rts/bin/linuxsteamrt64/mm-cs2kz-rts
+ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 EOF
 
 # Create server cfg
@@ -269,6 +271,12 @@ install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server
 install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
 #install_mount "configs/fkz-logs.cfg" "cfg/fkz-logs.cfg"
 #install_mount "configs/fkz-tv.cfg" "cfg/fkz-tv.cfg"
+
+install_mount "configs/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
+install_mount "configs/admins.cfg" "cfg/cs2admin/admins.cfg"
+install_mount "configs/admin_overrides.cfg" "cfg/cs2admin/admin_overrides.cfg"
+install_mount "configs/admin_groups.cfg" "cfg/cs2admin/admin_groups.cfg"
+install_mount "$ID/configs/core.cfg" "cfg/cs2admin/core.cfg"
 
 install_mount "$ID/configs/mm-rts.cfg" "cfg/mm-cs2kz-rts/mm-rts.cfg"
 
