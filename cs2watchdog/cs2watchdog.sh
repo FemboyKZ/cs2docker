@@ -84,7 +84,7 @@ install_metamod() {
     local tmp_dir="/watchdog/layers/.tmp"
 
     local latest
-    latest=$(curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/mmsource-latest-linux")
+    latest=$(curl -sSL "https://www.metamodsource.net/latest.php?os=linux&version=2.0")
 
     if [ -d "$builds_dir/$latest" ] && [ -n "$(ls -A "$builds_dir/$latest")" ]; then
         return 0
@@ -93,7 +93,7 @@ install_metamod() {
     echo "Installing metamod: $latest"
     rm -rf "$tmp_dir"
     mkdir -p "$tmp_dir"
-    curl -sSL "https://mms.alliedmods.net/mmsdrop/2.0/$latest" \
+    curl -sSL "https://www.metamodsource.net/latest.php?os=linux&version=2.0" \
         | tar -xz --no-same-permissions -C "$tmp_dir"
 
     mkdir -p "$builds_dir"
@@ -125,10 +125,6 @@ update_plugins() {
     install_github_release "FemboyKZ"        "mm-cs2admin"           "linux"                  "cs2admin"
 
     # CSS Plugins
-    #install_github_release "Nereziel"        "cs2-WeaponPaints"     "WeaponPaints\.zip"      "weaponpaints"
-    #install_github_release "NickFox007"      "PlayerSettingsCS2"    "PlayerSettings"         "playersettings"
-    #install_github_release "NickFox007"      "AnyBaseLibCS2"        "AnyBaseLib"             "anybaselib"
-    #install_github_release "NickFox007"      "MenuManagerCS2"       "MenuManager"            "menumanager"
     #install_github_release "FemboyKZ"        "cs2docker-autorestart""AutoRestart"            "autorestart"
 
     # 12 plugins, twice a minute
