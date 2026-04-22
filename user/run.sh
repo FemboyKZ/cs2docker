@@ -189,30 +189,14 @@ else
 
     install_layer "cs2menumanager"
 
-    #install_github_release "FemboyKZ" "cs2-rockthevote" "RockTheVote" "/layers/rtv/RockTheVote"
     install_layer "rtv"
 
-    #install_github_release "FemboyKZ" "cs2-simple-guns-menu" "SimpleGunMenuPlugin" "/layers/guns/SimpleGunMenuPlugin"
     install_layer "guns" "" "addons/counterstrikesharp/plugins"
 
-    #install_github_release "FemboyKZ" "anti-fun" "cs2" "/layers/antifun"
     install_layer "antifun"
-
-    #install_github_release "FemboyKZ" "CustomStatus" "CStatus" "/layers/cstatus"
-    #install_layer "cstatus"
 
     #install_layer "htmlfix"
     install_layer "motdfix"
-
-    # CSS Deps
-    #install_layer "playersettings"
-    #install_layer "anybaselib"
-    #install_layer "menumanager"
-
-    # WeaponPaints
-    #install_layer "weaponpaints" "" "addons/counterstrikesharp/plugins"
-    #cp -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/gamedata"/. "$server_dir/game/csgo/addons/counterstrikesharp/gamedata/"
-    #rm -rf "$server_dir/game/csgo/addons/counterstrikesharp/plugins/gamedata"
 fi
 
 # Install whitelist if enabled
@@ -253,24 +237,18 @@ cat <<EOF > "$server_dir/game/csgo/cfg/server.cfg"
 hostname "$HOSTNAME"
 sv_password ""
 rcon_password "$RCON_PASSWORD"
-sv_hibernate_when_empty false
-sv_hibernate_postgame_delay 0
+sv_hibernate_when_empty true
+sv_hibernate_postgame_delay 5
 sv_tags "$TAGS"
 mp_autokick 0
 exec fkz-print.cfg
-// exec fkz-settings.cfg
-// exec fkz-logs.cfg
-// exec fkz-tv.cfg
 EOF
 
 # Mount static configs we create/setup manually, so they persist across plugin updates.
 install_mount "configs/maplist.txt" "cfg/maplist.txt"
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
-#install_mount "configs/fkz-settings.cfg" "cfg/fkz-settings.cfg"
 install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
-#install_mount "configs/fkz-logs.cfg" "cfg/fkz-logs.cfg"
-#install_mount "configs/fkz-tv.cfg" "cfg/fkz-tv.cfg"
 
 install_mount "configs/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
 install_mount "configs/admins.cfg" "cfg/cs2admin/admins.cfg"
@@ -285,7 +263,6 @@ install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonm
 install_mount "configs/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
 
 # cssharp configs
-cssharp_cfg_dir="$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins"
 install_mount "configs/counterstrikesharp" "addons/counterstrikesharp/configs"
 
 # cs2kz cfg (STUPID TXT FILE)
