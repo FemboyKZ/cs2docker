@@ -82,19 +82,36 @@ install_metamod() {
     local builds_dir="/watchdog/layers/$name/builds"
     local latest_file="/watchdog/layers/$name/latest.txt"
     local tmp_dir="/watchdog/layers/.tmp"
+    local url="https://www.metamodsource.net/latest.php?os=linux&version=2.0"
 
+    # Resolve the redirect to get the versioned filename
+    local final_url
+    final_url=$(curl -sSL -o /dev/null -w '%{url_effective}' "$url")
     local latest
-    latest=$(curl -sSL "https://www.metamodsource.net/latest.php?os=linux&version=2.0")
+    latest=$(basename "$final_url" .tar.gz)
+
+    if ! [[ "$latest" =~ ^[[:alnum:]._+-]+$ ]]; then
+        echo "ERROR: Could not determine metamod version from URL: $final_url"
+        return 1
+    fi
 
     if [ -d "$builds_dir/$latest" ] && [ -n "$(ls -A "$builds_dir/$latest")" ]; then
         return 0
     fi
 
     echo "Installing metamod: $latest"
+    local tmp_archive="/tmp/${name}_${latest}.tar.gz"
+    rm -f "$tmp_archive"
+    if ! curl -fsSL "$url" -o "$tmp_archive"; then
+        echo "ERROR: Failed to download metamod"
+        rm -f "$tmp_archive"
+        return 1
+    fi
+
     rm -rf "$tmp_dir"
     mkdir -p "$tmp_dir"
-    curl -sSL "https://www.metamodsource.net/latest.php?os=linux&version=2.0" \
-        | tar -xz --no-same-permissions -C "$tmp_dir"
+    tar -xz --no-same-permissions -f "$tmp_archive" -C "$tmp_dir" || { rm -f "$tmp_archive"; rm -rf "$tmp_dir"; return 1; }
+    rm -f "$tmp_archive"
 
     mkdir -p "$builds_dir"
     mv "$tmp_dir" "$builds_dir/$latest"
