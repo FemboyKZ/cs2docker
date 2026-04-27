@@ -169,6 +169,7 @@ install_layer "listfix"
 install_layer "banfix"
 install_layer "cs2kzstatus"
 install_layer "cs2admin"
+install_layer "cs2whitelist"
 
 # Install CSS plugins
 install_layer "autorestart"
@@ -195,14 +196,7 @@ else
 
     install_layer "antifun"
 
-    #install_layer "htmlfix"
     install_layer "motdfix"
-fi
-
-# Install whitelist if enabled
-if [[ "${WHITELIST,,}" = "true" ]]; then
-    install_layer "whitelist"
-    install_mount "configs/Whitelist" "addons/counterstrikesharp/configs/plugins/Whitelist"
 fi
 
 # Cleanup cfg files before installing our own, to prevent stale configs from previous versions.
@@ -232,6 +226,11 @@ CS2KZRTS addons/mm-cs2kz-rts/bin/linuxsteamrt64/mm-cs2kz-rts
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 EOF
 
+# Install whitelist if enabled
+if [[ "${WHITELIST,,}" = "true" ]]; then
+    echo "WHITELIST addons/cs2whitelist/bin/linuxsteamrt64/cs2whitelist" >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+fi
+
 # Create server cfg
 cat <<EOF > "$server_dir/game/csgo/cfg/server.cfg"
 hostname "$HOSTNAME"
@@ -246,6 +245,7 @@ EOF
 
 # Mount static configs we create/setup manually, so they persist across plugin updates.
 install_mount "configs/maplist.txt" "cfg/maplist.txt"
+
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
 install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
@@ -261,6 +261,8 @@ install_mount "$ID/configs/mm-rts.cfg" "cfg/mm-cs2kz-rts/mm-rts.cfg"
 install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
 install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
 install_mount "configs/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
+
+install_mount "configs/whitelist" "cfg/cs2whitelist"
 
 # cssharp configs
 install_mount "configs/counterstrikesharp" "addons/counterstrikesharp/configs"

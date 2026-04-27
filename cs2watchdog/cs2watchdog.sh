@@ -104,31 +104,29 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus" "cs2admin")
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus" "cs2admin" "cs2whitelist")
 
     rm -rf "/watchdog/layers/.tmp"
 
     install_metamod
 
     # MM Plugins
-    install_github_release "Source2ZE"       "AcceleratorCS2"       "addon"                  "accel"
-    install_github_release "KZGlobalTeam"    "cs2kz-metamod"        'linux-master\.tar\.gz$' "kz"
-    install_github_release "roflmuffin"      "CounterStrikeSharp"   "with-runtime-linux"     "cssharp"
-    install_github_release "Source2ZE"       "MultiAddonManager"    "linux"                  "mam"
-    install_github_release "zer0k-z"         "sql_mm"               "linux"                  "sql_mm"
-    install_github_release "komashchenko"    "ClientCvarValue"      "linux"                  "ccvar"
-    install_github_release "Source2ZE"       "CleanerCS2"           "CleanerCS2"             "cleaner"
-    install_github_release "Source2ZE"       "ServerListPlayersFix" "linux"                  "listfix"
-    install_github_release "Cruze03"         "GameBanFix"           "linux"                  "banfix"
-    install_github_release "zer0k-z"         "wscleaner"            "linux"                  "wscleaner"
-    install_github_release "FemboyKZ"        "cs2kz-realtime-status" "linux"                  "cs2kzstatus"
-    install_github_release "FemboyKZ"        "mm-cs2admin"           "linux"                  "cs2admin"
+    install_github_release "Source2ZE"       "AcceleratorCS2"           "addon"                     "accel"
+    install_github_release "KZGlobalTeam"    "cs2kz-metamod"            'linux-master\.tar\.gz$'    "kz"
+    install_github_release "roflmuffin"      "CounterStrikeSharp"       "with-runtime-linux"        "cssharp"
+    install_github_release "Source2ZE"       "MultiAddonManager"        "linux"                     "mam"
+    install_github_release "zer0k-z"         "sql_mm"                   "linux"                     "sql_mm"
+    install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
+    install_github_release "Source2ZE"       "CleanerCS2"               "CleanerCS2"                "cleaner"
+    install_github_release "Source2ZE"       "ServerListPlayersFix"     "linux"                     "listfix"
+    install_github_release "Cruze03"         "GameBanFix"               "linux"                     "banfix"
+    install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
+    install_github_release "FemboyKZ"        "cs2kz-realtime-status"    "linux"                     "cs2kzstatus"
+    install_github_release "FemboyKZ"        "mm-cs2admin"              "linux"                     "cs2admin"
+    install_github_release "FemboyKZ"        "mm-cs2whitelist"          "linux"                     "cs2whitelist"
 
-    # CSS Plugins
-    #install_github_release "FemboyKZ"        "cs2docker-autorestart""AutoRestart"            "autorestart"
-
-    # 12 plugins, twice a minute
-    # 12 x 2 x 60 = 1440 / 5000
+    # 14 plugins, twice a minute
+    # 14 x 2 x 60 = 1680 / 5000
 
     (
         flock -nx 200 || exit 0
