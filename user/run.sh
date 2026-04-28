@@ -285,6 +285,7 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 install_mount "$ID/logs" "logs"
 install_mount "$ID/logs/counterstrikesharp" "addons/counterstrikesharp/logs"
 install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
+install_mount "$ID/queue.txt" "addons/cs2admin/queue.txt"
 # Mount replays
 install_mount "kzreplays" "kzreplays"
 
