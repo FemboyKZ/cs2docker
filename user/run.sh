@@ -17,7 +17,7 @@ rm -rf "$server_dir/game/csgo/addons"
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs" "/mounts/configs/counterstrikesharp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps" "/mounts/$ID/configs"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps" "/mounts/$ID/configs" "/mounts/$ID/sqlite/cs2whitelist"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
@@ -170,6 +170,7 @@ install_layer "banfix"
 install_layer "cs2kzstatus"
 install_layer "cs2admin"
 install_layer "cs2whitelist"
+install_layer "cs2rockthevote"
 
 # Install CSS plugins
 install_layer "autorestart"
@@ -187,10 +188,6 @@ if [[ "${MAPTEST,,}" == "true" ]]; then
 else
     # Misc plugins
     # Minor plugins rarely update, so we can just check once at startup
-
-    install_layer "cs2menumanager"
-
-    install_layer "rtv"
 
     install_layer "guns" "" "addons/counterstrikesharp/plugins"
 
@@ -224,6 +221,7 @@ LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_m
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 CS2KZRTS addons/mm-cs2kz-rts/bin/linuxsteamrt64/mm-cs2kz-rts
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
+RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 EOF
 
 # Install whitelist if enabled
@@ -258,11 +256,14 @@ install_mount "$ID/configs/core.cfg" "cfg/cs2admin/core.cfg"
 
 install_mount "$ID/configs/mm-rts.cfg" "cfg/mm-cs2kz-rts/mm-rts.cfg"
 
+install_mount "configs/rtv/core.cfg" "cfg/cs2rtv/core.cfg"
+
 install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
 install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
 install_mount "configs/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
 
 install_mount "configs/whitelist" "cfg/cs2whitelist"
+install_mount "$ID/sqlite/cs2whitelist" "addons/cs2whitelist/db"
 
 # cssharp configs
 install_mount "configs/counterstrikesharp" "addons/counterstrikesharp/configs"
