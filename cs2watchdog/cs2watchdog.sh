@@ -24,6 +24,11 @@ install_github_release() {
 
     release_json=$(echo "$release_json" | jq '.[0]')
 
+    if echo "$release_json" | jq -e '. == null' > /dev/null 2>&1; then
+        echo "ERROR: No releases found for $owner/$repo (empty or rate-limited response)"
+        return 1
+    fi
+
     local latest
     latest=$(echo "$release_json" | jq -r '.tag_name')
 
@@ -84,14 +89,13 @@ install_metamod() {
     local tmp_dir="/watchdog/layers/.tmp"
     local url="https://www.metamodsource.net/latest.php?os=linux&version=2.0"
 
-    # Resolve the redirect to get the versioned filename
-    local final_url
-    final_url=$(curl -sSL -o /dev/null -w '%{url_effective}' "$url")
-    local latest
-    latest=$(basename "$final_url" .tar.gz)
+    # Use Content-Disposition header from a HEAD request to get the versioned filename
+    local filename
+    filename=$(curl -sSLI "$url" | grep -i 'content-disposition' | grep -oP 'filename=\K[^\s;\r]+' | tr -d '"')
+    local latest="${filename%.tar.gz}"
 
     if ! [[ "$latest" =~ ^[[:alnum:]._+-]+$ ]]; then
-        echo "ERROR: Could not determine metamod version from URL: $final_url"
+        echo "ERROR: Could not determine metamod version (got: '$latest')"
         return 1
     fi
 
