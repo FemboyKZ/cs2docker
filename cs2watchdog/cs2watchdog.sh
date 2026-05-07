@@ -76,10 +76,10 @@ install_github_release() {
 
     rm -f "$tmp_archive"
     mkdir -p "$builds_dir"
-    mv "$tmp_dir" "$builds_dir/$latest"
+    mv -f "$tmp_dir" "$builds_dir/$latest"
 
     echo "$latest" > "/tmp/layer_latest.txt"
-    mv "/tmp/layer_latest.txt" "$latest_file"
+    mv -f "/tmp/layer_latest.txt" "$latest_file"
 }
 
 install_metamod() {
@@ -118,10 +118,10 @@ install_metamod() {
     rm -f "$tmp_archive"
 
     mkdir -p "$builds_dir"
-    mv "$tmp_dir" "$builds_dir/$latest"
+    mv -f "$tmp_dir" "$builds_dir/$latest"
 
     echo "$latest" > "/tmp/layer_latest.txt"
-    mv "/tmp/layer_latest.txt" "$latest_file"
+    mv -f "/tmp/layer_latest.txt" "$latest_file"
 }
 
 update_plugins() {
@@ -180,19 +180,19 @@ update_cs2() {
     # Hard symlink the files from /watchdog/cs2/install to /watchdog/.tmp, then rename /watchdog/.tmp to /watchdog/cs2/builds/????? so it's atomic.
     # Must use a tmp directory inside of the /watchdog because symlinks don't work across filesystems.
     cp -rl "/watchdog/cs2/install" "/watchdog/.tmp"
-    mv "/watchdog/.tmp" "/watchdog/cs2/builds/$installed_version"
+    mv -f "/watchdog/.tmp" "/watchdog/cs2/builds/$installed_version"
 
     # Store the version in latest.txt so servers can detect an update
-    rm "/tmp/latest.txt"
+    rm -f "/tmp/latest.txt"
     echo "$installed_version" > "/tmp/latest.txt"
-    mv "/tmp/latest.txt" "/watchdog/cs2/latest.txt"
+    mv -f "/tmp/latest.txt" "/watchdog/cs2/latest.txt"
 }
 
 # Download SteamCMD
 if [ ! -d "/watchdog/steamcmd" ]; then
     mkdir -p "/tmp/steamcmd"
     curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - -C "/tmp/steamcmd"
-    mv "/tmp/steamcmd" "/watchdog/steamcmd"
+    mv -f "/tmp/steamcmd" "/watchdog/steamcmd"
 fi
 
 mkdir -p "/watchdog/cs2/builds"
