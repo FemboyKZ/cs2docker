@@ -4,3 +4,4 @@ mounts/*
 watchdog/*
 .env*
 !.env*.example
+.vscode/*
