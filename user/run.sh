@@ -17,7 +17,7 @@ rm -rf "$server_dir/game/csgo/addons"
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs" "/mounts/configs/counterstrikesharp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps" "/mounts/$ID/configs" "/mounts/$ID/sqlite/cs2whitelist"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps" "/mounts/$ID/configs" "/mounts/$ID/sqlite/cs2whitelist"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
@@ -242,7 +242,11 @@ exec fkz-print.cfg
 EOF
 
 # Mount static configs we create/setup manually, so they persist across plugin updates.
-install_mount "configs/maplist.txt" "cfg/maplist.txt"
+if [[ ("$REGION" = "EU" && "$ID" = "fkz-7") || ("$REGION" = "NA" && "$ID" = "fkz-5") ]]; then
+    install_mount "configs/maplistmv.txt" "cfg/maplist.txt"
+else
+    install_mount "configs/maplist.txt" "cfg/maplist.txt"
+fi
 
 install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
 install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
@@ -283,6 +287,7 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 
 # Mount logs
 install_mount "$ID/logs" "logs"
+install_mount "$ID/logs/kz" "addons/cs2kz/logs"
 install_mount "$ID/logs/counterstrikesharp" "addons/counterstrikesharp/logs"
 install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "$ID/queue.txt" "addons/cs2admin/queue.txt"
