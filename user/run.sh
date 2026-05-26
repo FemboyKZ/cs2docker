@@ -158,7 +158,7 @@ install_layer "mm"
 sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_dir/game/csgo/gameinfo.gi"
 
 # Install MM Plugins
-install_layer "accel" "" "addons"
+install_layer "accel"
 install_layer "kz"
 install_layer "cssharp"
 install_layer "mam"
@@ -211,6 +211,7 @@ if [[ "${MAPTEST,,}" == "true" ]]; then
 fi
 
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
+ACCEL addons/AcceleratorCS2/AcceleratorCS2
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
