@@ -3,6 +3,11 @@
 set -ueEo pipefail
 
 echo "Build version: $build_ver"
+echo "Restart time: $RESTART_TIME"
+echo "Build dir: $build_dir"
+echo "Server dir: $server_dir"
+
+export daily_restart_time="$RESTART_TIME"
 
 # Symlink all the server files.
 cp -rs "$build_dir"/* "$server_dir"
@@ -171,15 +176,7 @@ install_layer "cs2kzstatus"
 install_layer "cs2admin"
 install_layer "cs2whitelist"
 install_layer "cs2rockthevote"
-
-# Install CSS plugins
 install_layer "autorestart"
-cat <<EOF > "$server_dir/game/csgo/addons/counterstrikesharp/configs/plugins/AutoRestart.json"
-{
-  "daily_restart_time": "$RESTART_TIME",
-  "ConfigVersion": 1
-}
-EOF
 
 # Maptest or FKZ plugins
 if [[ "${MAPTEST,,}" == "true" ]]; then

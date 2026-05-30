@@ -125,7 +125,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus" "cs2admin" "cs2whitelist" "cs2rockthevote")
+    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus" "cs2admin" "cs2whitelist" "cs2rockthevote" "autorestart")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -146,9 +146,10 @@ update_plugins() {
     install_github_release "FemboyKZ"        "mm-cs2admin"              "linux"                     "cs2admin"
     install_github_release "FemboyKZ"        "mm-cs2whitelist"          "linux"                     "cs2whitelist"
     install_github_release "FemboyKZ"        "mm-cs2rockthevote"        "linux"                     "cs2rockthevote"
+    install_github_release "FemboyKZ"        "cs2docker-autorestart"    "linux"                     "autorestart"
 
-    # 15 plugins, twice a minute
-    # 15 x 2 x 60 = 1800 / 5000
+    # 16 plugins, twice a minute
+    # 16 x 2 x 60 = 1920 / 5000
 
     (
         flock -nx 200 || exit 0
