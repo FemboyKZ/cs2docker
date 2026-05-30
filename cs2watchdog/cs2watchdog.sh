@@ -82,6 +82,26 @@ install_github_release() {
     mv -f "/tmp/layer_latest.txt" "$latest_file"
 }
 
+install_github_release_once() {
+    # Same args as install_github_release: <owner> <repo> <asset_pattern> <name>
+    # For plugins that don't need updating: if the layer is already installed
+    # (its build dir exists and has contents) this returns immediately WITHOUT
+    # touching GitHub, so the release is fetched exactly once instead of every loop.
+    local name="$4"
+    local builds_dir="/watchdog/layers/$name/builds"
+    local latest_file="/watchdog/layers/$name/latest.txt"
+
+    if [ -f "$latest_file" ]; then
+        local current
+        current=$(cat "$latest_file")
+        if [ -n "$current" ] && [ -d "$builds_dir/$current" ] && [ -n "$(ls -A "$builds_dir/$current")" ]; then
+            return 0
+        fi
+    fi
+
+    install_github_release "$@"
+}
+
 install_metamod() {
     local name="mm"
     local builds_dir="/watchdog/layers/$name/builds"

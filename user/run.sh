@@ -1,5 +1,5 @@
 #!/bin/bash
-
+trap '' SIGINT
 set -ueEo pipefail
 
 echo "Build version: $build_ver"
