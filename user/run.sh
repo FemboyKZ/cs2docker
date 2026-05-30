@@ -8,6 +8,7 @@ echo "Build dir: $build_dir"
 echo "Server dir: $server_dir"
 
 export daily_restart_time="$RESTART_TIME"
+export discord_webhook="$DC_RESTART_WEBHOOK"
 
 # Symlink all the server files.
 cp -rs "$build_dir"/* "$server_dir"
