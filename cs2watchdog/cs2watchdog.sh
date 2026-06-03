@@ -145,7 +145,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "cssharp" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus" "cs2admin" "cs2whitelist" "cs2rockthevote" "autorestart")
+    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus" "cs2admin" "cs2whitelist" "cs2rockthevote" "autorestart")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -154,7 +154,6 @@ update_plugins() {
     # MM Plugins
     install_github_release "Source2ZE"       "AcceleratorCS2"           "addon"                     "accel"
     install_github_release "KZGlobalTeam"    "cs2kz-metamod"            'linux-master\.tar\.gz$'    "kz"
-    install_github_release "roflmuffin"      "CounterStrikeSharp"       "with-runtime-linux"        "cssharp"
     install_github_release "Source2ZE"       "MultiAddonManager"        "linux"                     "mam"
     install_github_release "zer0k-z"         "sql_mm"                   "linux"                     "sql_mm"
     install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
