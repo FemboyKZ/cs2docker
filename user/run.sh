@@ -22,8 +22,8 @@ rm -rf "$server_dir/game/csgo/addons"
 
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
-mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs" "/mounts/configs/counterstrikesharp"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/logs/counterstrikesharp" "/mounts/$ID/dumps" "/mounts/$ID/configs" "/mounts/$ID/sqlite/cs2whitelist"
+mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/dumps" "/mounts/$ID/configs" "/mounts/$ID/sqlite/cs2whitelist"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
@@ -166,7 +166,6 @@ sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_d
 # Install MM Plugins
 install_layer "accel"
 install_layer "kz"
-install_layer "cssharp"
 install_layer "mam"
 install_layer "sql_mm"
 install_layer "ccvar"
@@ -183,15 +182,6 @@ install_layer "autorestart"
 if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
     install_layer "wscleaner"
-else
-    # Misc plugins
-    # Minor plugins rarely update, so we can just check once at startup
-
-    install_layer "guns" "" "addons/counterstrikesharp/plugins"
-
-    install_layer "antifun"
-
-    install_layer "motdfix"
 fi
 
 # Cleanup cfg files before installing our own, to prevent stale configs from previous versions.
@@ -213,7 +203,6 @@ ACCEL addons/AcceleratorCS2/AcceleratorCS2
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
-CSS addons/counterstrikesharp/bin/linuxsteamrt64/counterstrikesharp
 MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
@@ -268,9 +257,6 @@ install_mount "configs/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
 install_mount "configs/whitelist" "cfg/cs2whitelist"
 install_mount "$ID/sqlite/cs2whitelist" "addons/cs2whitelist/db"
 
-# cssharp configs
-install_mount "configs/counterstrikesharp" "addons/counterstrikesharp/configs"
-
 # cs2kz cfg (STUPID TXT FILE)
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultMode" "Vanilla"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultTimeLimit" "600.0"
@@ -287,7 +273,6 @@ modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PA
 # Mount logs
 install_mount "$ID/logs" "logs"
 install_mount "$ID/logs/kz" "addons/cs2kz/logs"
-install_mount "$ID/logs/counterstrikesharp" "addons/counterstrikesharp/logs"
 install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "$ID/queue.txt" "addons/cs2admin/queue.txt"
 # Mount replays
