@@ -210,6 +210,7 @@ BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 CS2KZRTS addons/mm-cs2kz-rts/bin/linuxsteamrt64/mm-cs2kz-rts
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
+RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
 EOF
 
 # Install whitelist if enabled
