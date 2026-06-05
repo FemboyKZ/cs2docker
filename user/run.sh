@@ -67,98 +67,6 @@ modify_config() {
     fi
 }
 
-install_github_release() {
-    local owner="$1"
-    local repo="$2"
-    local asset_pattern="$3"
-    local install_dir="$4"
-    local subdir="${5:-*}" # subdir within extracted archive to copy from; * = skip wrapper dir
-    local version_file="/watchdog/gh/${repo}/version.txt"
-    local cache_dir="/watchdog/gh/${repo}/files"
-    local tmp_dir="/tmp/gh_${repo}"
-    local tmp_archive="/tmp/gh_${repo}.archive"
-
-    local release_json
-    release_json=$(curl -sSL \
-        ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
-        "https://api.github.com/repos/$owner/$repo/releases?per_page=1")
-
-    # Check if we got an array back, otherwise it's an API error
-    if ! echo "$release_json" | jq -e 'type == "array"' > /dev/null 2>&1; then
-        echo "ERROR: GitHub API error for $owner/$repo:"
-        echo "$release_json" | jq -r '.message // .'
-        return 1
-    fi
-
-    release_json=$(echo "$release_json" | jq '.[0]')
-
-    local latest
-    latest=$(echo "$release_json" | jq -r '.tag_name')
-
-    local installed=""
-    if [[ -f "$version_file" ]]; then
-        installed=$(cat "$version_file")
-    fi
-
-    if [[ "$latest" != "$installed" ]]; then
-        echo "Installing $repo $latest..."
-
-        local asset_url
-        asset_url=$(echo "$release_json" | jq -r --arg pat "$asset_pattern" \
-            '.assets[] | select((.name | test($pat)) and (.name | test("upgrade") | not)) | .browser_download_url')
-
-        if [[ -z "$asset_url" ]]; then
-            echo "ERROR: No asset matched pattern '$asset_pattern' for $owner/$repo"
-            echo "Available assets:"
-            echo "$release_json" | jq -r '.assets[].name'
-            return 1
-        fi
-
-        rm -rf "$tmp_dir"
-        mkdir -p "$tmp_dir"
-        curl -sSL "$asset_url" -o "$tmp_archive"
-
-        case "$asset_url" in
-            *.zip)
-                unzip -o -q "$tmp_archive" -d "$tmp_dir"
-                ;;
-            *.tar.gz|*.tgz|*.tar.xz|*.tar)
-                tar -x --no-same-permissions -f "$tmp_archive" -C "$tmp_dir"
-                ;;
-            *)
-                echo "ERROR: Unknown file extension for $repo: $asset_url"
-                rm -f "$tmp_archive"
-                rm -rf "$tmp_dir"
-                return 1
-                ;;
-        esac || { rm -f "$tmp_archive"; rm -rf "$tmp_dir"; return 1; }
-
-        rm -f "$tmp_archive"
-
-        # Extract into persistent cache, replacing any previous version.
-        rm -rf "$cache_dir"
-        mkdir -p "$cache_dir"
-        for src in "$tmp_dir"/${subdir:-*}; do
-            if [[ -d "$src" ]]; then
-                cp -rf "$src"/* "$cache_dir/"
-            else
-                cp -rf "$src" "$cache_dir/"
-            fi
-        done
-
-        rm -rf "$tmp_dir"
-        echo "$latest" > "$version_file"
-        echo "$repo installed: $latest"
-    else
-        echo "$repo already up to date: $installed"
-    fi
-
-    # Always copy from cache into the (freshly built) server dir.
-    rm -rf "$install_dir"
-    mkdir -p "$install_dir"
-    find "$cache_dir" -maxdepth 1 -mindepth 1 -exec cp -rf {} "$install_dir/" \;
-}
-
 # install MetadMod
 install_layer "mm"
 sed -i "0,/\t\t\tGame\tcsgo/s//\t\t\tGame\tcsgo\/addons\/metamod\n&/" "$server_dir/game/csgo/gameinfo.gi"
@@ -190,10 +98,6 @@ rm -rf "$server_dir/game/csgo/cfg/server.cfg"
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 # Create metaplugins.ini for metamod
-if [[ "${ACCEL,,}" == "cs2" || "${ACCEL,,}" == "true" ]]; then
-    echo "ACCEL addons/AcceleratorCS2/AcceleratorCS2" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-fi
-
 if [[ "${MAPTEST,,}" == "true" ]]; then
     echo "WSCLEANER addons/wscleaner/bin/wscleaner" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 fi
@@ -201,9 +105,9 @@ fi
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 ACCEL addons/AcceleratorCS2/AcceleratorCS2
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
-CLEANER addons/cleanercs2/cleanercs2
+;CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
-MAM addons/multiaddonmanager/bin/multiaddonmanager
+;MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
@@ -237,8 +141,8 @@ else
     install_mount "configs/maplist.txt" "cfg/maplist.txt"
 fi
 
-install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
-install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
+#install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
+#install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
 install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
 
 install_mount "configs/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
@@ -291,4 +195,4 @@ rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
 echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
 
 # Run the server.
-"$server_dir/game/cs2.sh" -dedicated -condebug -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +host_workshop_map "$WS_MAP" +exec server.cfg -maxplayers 64 -nohltv
+"$server_dir/game/cs2.sh" -dedicated -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +host_workshop_map "$WS_MAP" +exec server.cfg -maxplayers 64 -nohltv
