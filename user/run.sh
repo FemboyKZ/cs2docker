@@ -141,8 +141,8 @@ else
     install_mount "configs/maplist.txt" "cfg/maplist.txt"
 fi
 
-#install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
-#install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
+install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
+install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
 install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
 
 install_mount "configs/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
