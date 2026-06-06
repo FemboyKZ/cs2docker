@@ -105,9 +105,9 @@ fi
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 ACCEL addons/AcceleratorCS2/AcceleratorCS2
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
-;CLEANER addons/cleanercs2/cleanercs2
+CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
-;MAM addons/multiaddonmanager/bin/multiaddonmanager
+MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
