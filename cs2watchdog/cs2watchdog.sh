@@ -145,7 +145,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "cs2kzstatus" "cs2admin" "cs2whitelist" "cs2rockthevote" "autorestart")
+    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "fkzapi" "cs2admin" "cs2whitelist" "cs2rockthevote" "autorestart")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -161,7 +161,7 @@ update_plugins() {
     install_github_release "Source2ZE"       "ServerListPlayersFix"     "linux"                     "listfix"
     install_github_release "Cruze03"         "GameBanFix"               "linux"                     "banfix"
     install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
-    install_github_release "FemboyKZ"        "cs2kz-realtime-status"    "linux"                     "cs2kzstatus"
+    install_github_release "FemboyKZ"        "mm-fkz-api"               "linux"                     "fkzapi"
     install_github_release "FemboyKZ"        "mm-cs2admin"              "linux"                     "cs2admin"
     install_github_release "FemboyKZ"        "mm-cs2whitelist"          "linux"                     "cs2whitelist"
     install_github_release "FemboyKZ"        "mm-cs2rockthevote"        "linux"                     "cs2rockthevote"

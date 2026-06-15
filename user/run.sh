@@ -81,7 +81,7 @@ install_layer "ccvar"
 install_layer "cleaner" "" "addons"
 install_layer "listfix"
 install_layer "banfix"
-install_layer "cs2kzstatus"
+install_layer "fkzapi"
 install_layer "cs2admin"
 install_layer "cs2whitelist"
 install_layer "cs2rockthevote"
@@ -112,7 +112,7 @@ MAM addons/multiaddonmanager/bin/multiaddonmanager
 CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
-CS2KZRTS addons/mm-cs2kz-rts/bin/linuxsteamrt64/mm-cs2kz-rts
+FKZ addons/fkz-api/bin/linuxsteamrt64/fkz-api
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
@@ -152,7 +152,7 @@ install_mount "configs/admin_overrides.cfg" "cfg/cs2admin/admin_overrides.cfg"
 install_mount "configs/admin_groups.cfg" "cfg/cs2admin/admin_groups.cfg"
 install_mount "$ID/configs/core.cfg" "cfg/cs2admin/core.cfg"
 
-install_mount "$ID/configs/mm-rts.cfg" "cfg/mm-cs2kz-rts/mm-rts.cfg"
+install_mount "$ID/configs/fkz-api.cfg" "cfg/fkz-api/core.cfg"
 
 install_mount "configs/rtv/core.cfg" "cfg/cs2rtv/core.cfg"
 

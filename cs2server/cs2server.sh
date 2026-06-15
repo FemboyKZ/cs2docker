@@ -29,7 +29,7 @@ for (( first=1;; first=0 )); do
 
     # Verify all plugin layers have a build ready
     layers_ok=1
-    for layer_name in mm accel kz mam sql_mm ccvar cleaner listfix banfix wscleaner cs2kzstatus cs2admin cs2whitelist cs2rockthevote autorestart; do
+    for layer_name in mm accel kz mam sql_mm ccvar cleaner listfix banfix wscleaner fkzapi cs2admin cs2whitelist cs2rockthevote autorestart; do
         ver="$(read_layer_ver "$layer_name")"
         if [ -z "$ver" ] || [ ! -d "/watchdog/layers/$layer_name/builds/$ver" ]; then
             layers_ok=0
