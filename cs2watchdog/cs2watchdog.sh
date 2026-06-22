@@ -145,7 +145,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "fkzapi" "cs2admin" "cs2whitelist" "cs2rockthevote" "autorestart")
+    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "banfix" "wscleaner" "fkzapi" "cs2admin" "cs2menus" "cs2whitelist" "cs2rockthevote" "autorestart")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -163,6 +163,7 @@ update_plugins() {
     install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
     install_github_release "FemboyKZ"        "mm-fkz-api"               "linux"                     "fkzapi"
     install_github_release "FemboyKZ"        "mm-cs2admin"              "linux"                     "cs2admin"
+    install_github_release "FemboyKZ"        "mm-cs2menus"              "linux"                     "cs2menus"
     install_github_release "FemboyKZ"        "mm-cs2whitelist"          "linux"                     "cs2whitelist"
     install_github_release "FemboyKZ"        "mm-cs2rockthevote"        "linux"                     "cs2rockthevote"
     install_github_release "FemboyKZ"        "cs2docker-autorestart"    "linux"                     "autorestart"

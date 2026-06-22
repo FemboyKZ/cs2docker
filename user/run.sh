@@ -83,6 +83,7 @@ install_layer "listfix"
 install_layer "banfix"
 install_layer "fkzapi"
 install_layer "cs2admin"
+install_layer "cs2menus"
 install_layer "cs2whitelist"
 install_layer "cs2rockthevote"
 install_layer "autorestart"
@@ -113,6 +114,7 @@ CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
 BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 FKZ addons/fkz-api/bin/linuxsteamrt64/fkz-api
+MENU addons/cs2menus/bin/linuxsteamrt64/cs2menus
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
@@ -154,6 +156,7 @@ install_mount "$ID/configs/cs2admin/core.cfg" "cfg/cs2admin/core.cfg"
 
 install_mount "$ID/configs/fkz-api/core.cfg" "cfg/fkz-api/core.cfg"
 
+install_mount "configs/menu/core.cfg" "cfg/cs2menus/core.cfg"
 install_mount "configs/rtv/core.cfg" "cfg/cs2rtv/core.cfg"
 
 install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
@@ -167,7 +170,7 @@ install_mount "$ID/sqlite/cs2whitelist" "addons/cs2whitelist/db"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultMode" "Vanilla"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultTimeLimit" "600.0"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "chatPrefix" "{orchid}FKZ {grey}|{default}"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "overridePlayerChat" "true"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "overridePlayerChat" "false"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "driver" "mysql"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "host" "$DB_HOST"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "port" "$DB_PORT"
