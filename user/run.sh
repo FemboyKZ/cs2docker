@@ -88,6 +88,8 @@ install_layer "cs2whitelist"
 install_layer "cs2rockthevote"
 install_layer "autorestart"
 
+install_layer "test"
+
 # Maptest or FKZ plugins
 if [[ "${MAPTEST,,}" == "true" ]]; then
     install_layer "maptest"
@@ -118,6 +120,7 @@ MENU addons/cs2menus/bin/linuxsteamrt64/cs2menus
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
+MENUTEST addons/cs2menus_consumer/bin/linuxsteamrt64/cs2menus_consumer
 EOF
 
 # Install whitelist if enabled
@@ -168,7 +171,7 @@ install_mount "$ID/sqlite/cs2whitelist" "addons/cs2whitelist/db"
 
 # cs2kz cfg (STUPID TXT FILE)
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultMode" "Vanilla"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultTimeLimit" "600.0"
+modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultTimeLimit" "1440.0"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "chatPrefix" "{orchid}FKZ {grey}|{default}"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "overridePlayerChat" "false"
 modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "driver" "mysql"
