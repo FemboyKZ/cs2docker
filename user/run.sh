@@ -143,7 +143,7 @@ EOF
 # Mount static configs we create/setup manually, so they persist across plugin updates.
 if [[ ("$REGION" = "EU" && "$ID" = "fkz-7") || ("$REGION" = "NA" && "$ID" = "fkz-5") ]]; then
     install_mount "configs/maplistmv.txt" "cfg/maplist.txt"
-else if [[ ("$REGION" = "EU" && "$ID" = "fkz-8") || ("$REGION" = "NA" && "$ID" = "fkz-6") ]]; then
+elif [[ ("$REGION" = "EU" && "$ID" = "fkz-8") || ("$REGION" = "NA" && "$ID" = "fkz-6") ]]; then
     install_mount "configs/maplisteasy.txt" "cfg/maplist.txt"
 else
     install_mount "configs/maplist.txt" "cfg/maplist.txt"
