@@ -88,7 +88,7 @@ install_layer "cs2whitelist"
 install_layer "cs2rockthevote"
 install_layer "autorestart"
 
-install_layer "test"
+#install_layer "test"
 
 # Maptest or FKZ plugins
 if [[ "${MAPTEST,,}" == "true" ]]; then
@@ -120,7 +120,7 @@ MENU addons/cs2menus/bin/linuxsteamrt64/cs2menus
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
-MENUTEST addons/cs2menus_consumer/bin/linuxsteamrt64/cs2menus_consumer
+;MENUTEST addons/cs2menus_consumer/bin/linuxsteamrt64/cs2menus_consumer
 EOF
 
 # Install whitelist if enabled
@@ -143,6 +143,8 @@ EOF
 # Mount static configs we create/setup manually, so they persist across plugin updates.
 if [[ ("$REGION" = "EU" && "$ID" = "fkz-7") || ("$REGION" = "NA" && "$ID" = "fkz-5") ]]; then
     install_mount "configs/maplistmv.txt" "cfg/maplist.txt"
+else if [[ ("$REGION" = "EU" && "$ID" = "fkz-8") || ("$REGION" = "NA" && "$ID" = "fkz-6") ]]; then
+    install_mount "configs/maplisteasy.txt" "cfg/maplist.txt"
 else
     install_mount "configs/maplist.txt" "cfg/maplist.txt"
 fi
