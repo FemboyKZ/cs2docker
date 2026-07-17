@@ -157,6 +157,7 @@ install_mount "configs/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
 install_mount "configs/admins.cfg" "cfg/cs2admin/admins.cfg"
 install_mount "configs/admin_overrides.cfg" "cfg/cs2admin/admin_overrides.cfg"
 install_mount "configs/admin_groups.cfg" "cfg/cs2admin/admin_groups.cfg"
+install_mount "configs/tags.cfg" "cfg/cs2admin/tags.cfg"
 install_mount "$ID/configs/cs2admin/core.cfg" "cfg/cs2admin/core.cfg"
 
 install_mount "$ID/configs/fkz-api/core.cfg" "cfg/fkz-api/core.cfg"
