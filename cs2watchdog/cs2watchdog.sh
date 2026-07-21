@@ -157,7 +157,7 @@ update_plugins() {
     install_github_release "Source2ZE"       "MultiAddonManager"        "linux"                     "mam"
     install_github_release "zer0k-z"         "sql_mm"                   "linux"                     "sql_mm"
     install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
-    install_github_release "FemboyKZ"        "CleanerCS2"               "CleanerCS2"                "cleaner"
+    install_github_release "FemboyKZ"        "CleanerCS2"               "linux"                     "cleaner"
     install_github_release "Source2ZE"       "ServerListPlayersFix"     "linux"                     "listfix"
     install_github_release "Cruze03"         "GameBanFix"               "linux"                     "banfix"
     install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
