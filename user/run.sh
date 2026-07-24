@@ -137,7 +137,7 @@ sv_hibernate_when_empty true
 sv_hibernate_postgame_delay 5
 sv_tags "$TAGS"
 mp_autokick 0
-kz_profile_clantag_enable false
+kz_profile_clantag_enabled false
 exec fkz-print.cfg
 EOF
 
