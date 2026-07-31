@@ -78,8 +78,9 @@ install_layer "kz"
 install_layer "mam"
 install_layer "sql_mm"
 install_layer "ccvar"
-install_layer "cleaner" "" "addons"
+install_layer "cleaner"
 install_layer "listfix"
+install_layer "beamfix"
 install_layer "banfix"
 install_layer "fkzapi"
 install_layer "cs2admin"
@@ -120,6 +121,7 @@ MENU addons/cs2menus/bin/linuxsteamrt64/cs2menus
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
+BEAM addons/beam_crash_fix/bin/linuxsteamrt64/beam_crash_fix
 ;MENUTEST addons/cs2menus_consumer/bin/linuxsteamrt64/cs2menus_consumer
 EOF
 
