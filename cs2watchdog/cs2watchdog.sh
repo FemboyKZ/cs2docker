@@ -154,7 +154,7 @@ update_plugins() {
     # MM Plugins
     install_github_release "Source2ZE"       "AcceleratorCS2"           "addon"                     "accel"
     install_github_release "KZGlobalTeam"    "cs2kz-metamod"            'linux-master\.tar\.gz$'    "kz"
-    install_github_release "Source2ZE"       "MultiAddonManager"        "linux"                     "mam"
+    install_github_release "Source2ZE"       "MultiAddonManager"        "steamrt3"                  "mam"
     install_github_release "zer0k-z"         "sql_mm"                   "linux"                     "sql_mm"
     install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
     install_github_release "FemboyKZ"        "CleanerCS2"               "linux"                     "cleaner"
