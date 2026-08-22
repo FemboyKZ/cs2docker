@@ -122,6 +122,7 @@ ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
 BEAM addons/beam_crash_fix/bin/linuxsteamrt64/beam_crash_fix
+SPAM addons/console_spam_fix/bin/linuxsteamrt64/console_spam_fix
 ;MENUTEST addons/cs2menus_consumer/bin/linuxsteamrt64/cs2menus_consumer
 EOF
 
