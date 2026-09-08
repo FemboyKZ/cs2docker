@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim
 
 RUN dpkg --add-architecture i386 \
-    && apt-get update \
+    && apt-get update -y \
     && apt-get install -y --no-install-recommends --no-install-suggests \
         lib32stdc++6 ca-certificates curl jq tar unzip file \
     && apt-get autoremove -y \
