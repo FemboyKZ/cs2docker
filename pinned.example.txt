@@ -1,0 +1,30 @@
+# Pins a plugin layer to a specific version, so the watchdog stops updating it.
+#
+# Copy this to watchdog/pinned.txt (the watchdog reads it as /watchdog/pinned.txt).
+# One layer per line: <layer> <version>. Blank lines and # comments are ignored.
+# Edits are picked up on the next watchdog poll, no container restart needed.
+#
+# <layer> is a directory name under watchdog/layers/, and <version> is the GitHub
+# release tag, exactly as it appears in watchdog/layers/<layer>/latest.txt.
+# The "mm" layer uses the metamod drop name instead, e.g. mmsource-2.0.0-git1462-linux.
+#
+# If the pinned version isn't installed it is downloaded on the next poll, which does cause one restart onto it.
+
+# mm mmsource-2.0.0-git1411-linux
+# accel v2.0.6
+# kz v0.0.171
+# mam v1.5.4
+# sql_mm 1.3.4.2
+# ccvar v1.0.10
+# cleaner v1.1
+# listfix v1.0.8
+# beamfix v1.0.0
+# spamfix v1.0.0
+# banfix v1.0.7
+# wscleaner latest
+# fkzapi v2.2.2
+# cs2admin 3.8.8
+# cs2menus 1.5.8
+# cs2whitelist 1.3.8
+# cs2rockthevote 1.7.3
+# autorestart 1.3.1

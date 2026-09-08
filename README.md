@@ -42,6 +42,15 @@ It's recommended you edit [the example in this README](#runsh-1).
 Counter-Strike 2 has no built-in `-autoupdate` functionality to automatically restart the server when a new update is detected.
 You need to install my [AutoRestart](https://github.com/Szwagi/cs2docker-autorestart/) plugin for servers to restart on update without manual intervention.
 
+## Pinning a plugin version
+
+Create `watchdog/pinned.txt` (see [pinned.example.txt](pinned.example.txt)) to hold a plugin layer at a specific version:
+
+```txt
+kz v1.2.3
+mam mam-1.6.6
+```
+
 ## Binding IP and port
 
 Counter-Strike 2's built in `ip` and `port` launch options are broken. Use Docker IP/port binding instead.

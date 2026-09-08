@@ -2,6 +2,33 @@
 
 set -ueEo pipefail
 
+PINNED_FILE="/watchdog/pinned.txt"
+
+# Read the pinned version for a layer, or nothing if it isn't pinned.
+read_pin() {
+    local name="$1" pin
+    [ -f "$PINNED_FILE" ] || return 0
+    pin=$(tr -d '\r' < "$PINNED_FILE" | awk -v n="$name" '{ sub(/#.*/, "") } $1 == n { print $2; exit }')
+    [ -n "$pin" ] || return 0
+    # The version ends up as a directory name, so keep it to safe characters.
+    if ! [[ "$pin" =~ ^[[:alnum:]._+-]+$ ]]; then
+        echo "ERROR: Ignoring invalid pin for $name: '$pin'" >&2
+        return 0
+    fi
+    echo "$pin"
+}
+
+# Point a layer at a version. Skips the write when it already says that, so the
+# file's contents and mtime stay put and servers don't see a phantom update.
+write_layer_version() {
+    local latest_file="$1" ver="$2"
+    if [ -f "$latest_file" ] && [ "$(cat "$latest_file")" = "$ver" ]; then
+        return 0
+    fi
+    echo "$ver" > "/tmp/layer_latest.txt"
+    mv -f "/tmp/layer_latest.txt" "$latest_file"
+}
+
 install_github_release() {
     local owner="$1"
     local repo="$2"
@@ -11,22 +38,43 @@ install_github_release() {
     local latest_file="/watchdog/layers/$name/latest.txt"
     local tmp_dir="/watchdog/layers/.tmp"
 
+    # A pinned layer stays on its version: newer releases are ignored entirely and latest.txt is left alone
+    local pin
+    pin=$(read_pin "$name")
+    if [ -n "$pin" ] && [ -d "$builds_dir/$pin" ] && [ -n "$(ls -A "$builds_dir/$pin")" ]; then
+        write_layer_version "$latest_file" "$pin"
+        return 0
+    fi
+
+    local api_url="https://api.github.com/repos/$owner/$repo/releases?per_page=1"
+    if [ -n "$pin" ]; then
+        api_url="https://api.github.com/repos/$owner/$repo/releases/tags/$pin"
+    fi
+
     local release_json
     release_json=$(curl -sSL \
         ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
-        "https://api.github.com/repos/$owner/$repo/releases?per_page=1")
+        "$api_url")
 
-    if ! echo "$release_json" | jq -e 'type == "array"' > /dev/null 2>&1; then
-        echo "ERROR: GitHub API error for $owner/$repo:"
-        echo "$release_json" | jq -r '.message // .'
-        return 1
-    fi
+    if [ -n "$pin" ]; then
+        if ! echo "$release_json" | jq -e 'has("tag_name")' > /dev/null 2>&1; then
+            echo "ERROR: No release tagged '$pin' for $owner/$repo (pinned):"
+            echo "$release_json" | jq -r '.message // .'
+            return 1
+        fi
+    else
+        if ! echo "$release_json" | jq -e 'type == "array"' > /dev/null 2>&1; then
+            echo "ERROR: GitHub API error for $owner/$repo:"
+            echo "$release_json" | jq -r '.message // .'
+            return 1
+        fi
 
-    release_json=$(echo "$release_json" | jq '.[0]')
+        release_json=$(echo "$release_json" | jq '.[0]')
 
-    if echo "$release_json" | jq -e '. == null' > /dev/null 2>&1; then
-        echo "ERROR: No releases found for $owner/$repo (empty or rate-limited response)"
-        return 1
+        if echo "$release_json" | jq -e '. == null' > /dev/null 2>&1; then
+            echo "ERROR: No releases found for $owner/$repo (empty or rate-limited response)"
+            return 1
+        fi
     fi
 
     local latest
@@ -78,8 +126,7 @@ install_github_release() {
     mkdir -p "$builds_dir"
     mv -f "$tmp_dir" "$builds_dir/$latest"
 
-    echo "$latest" > "/tmp/layer_latest.txt"
-    mv -f "/tmp/layer_latest.txt" "$latest_file"
+    write_layer_version "$latest_file" "$latest"
 }
 
 install_github_release_once() {
@@ -91,7 +138,9 @@ install_github_release_once() {
     local builds_dir="/watchdog/layers/$name/builds"
     local latest_file="/watchdog/layers/$name/latest.txt"
 
-    if [ -f "$latest_file" ]; then
+    # A pin overrides whatever happens to be installed, and install_github_release
+    # already short-circuits without hitting GitHub once the pinned build is there.
+    if [ -z "$(read_pin "$name")" ] && [ -f "$latest_file" ]; then
         local current
         current=$(cat "$latest_file")
         if [ -n "$current" ] && [ -d "$builds_dir/$current" ] && [ -n "$(ls -A "$builds_dir/$current")" ]; then
@@ -109,18 +158,39 @@ install_metamod() {
     local tmp_dir="/watchdog/layers/.tmp"
     local url="https://www.metamodsource.net/latest.php?os=linux&version=2.0"
 
-    # Use Content-Disposition header from a HEAD request to get the versioned filename
-    local filename
-    filename=$(curl -sSLI "$url" | grep -i 'content-disposition' | grep -oP 'filename=\K[^\s;\r]+' | tr -d '"')
-    local latest="${filename%.tar.gz}"
+    local pin latest
+    pin=$(read_pin "$name")
 
-    if ! [[ "$latest" =~ ^[[:alnum:]._+-]+$ ]]; then
-        echo "ERROR: Could not determine metamod version (got: '$latest')"
-        return 1
-    fi
+    if [ -n "$pin" ]; then
+        if [ -d "$builds_dir/$pin" ] && [ -n "$(ls -A "$builds_dir/$pin")" ]; then
+            write_layer_version "$latest_file" "$pin"
+            return 0
+        fi
+        # latest.php redirects to a GitHub release, so a pinned drop can be fetched directly
+        local base="${pin#mmsource-}"
+        base="${base%%-git*}"
+        local build="${pin##*-git}"
+        build="${build%%-*}"
+        if [[ ! "$base" =~ ^[0-9.]+$ ]] || [[ ! "$build" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: Cannot derive a download URL from metamod pin '$pin'"
+            return 1
+        fi
+        url="https://github.com/alliedmodders/metamod-source/releases/download/$base.$build/$pin.tar.gz"
+        latest="$pin"
+    else
+        # Use Content-Disposition header from a HEAD request to get the versioned filename
+        local filename
+        filename=$(curl -sSLI "$url" | grep -i 'content-disposition' | grep -oP 'filename=\K[^\s;\r]+' | tr -d '"')
+        latest="${filename%.tar.gz}"
 
-    if [ -d "$builds_dir/$latest" ] && [ -n "$(ls -A "$builds_dir/$latest")" ]; then
-        return 0
+        if ! [[ "$latest" =~ ^[[:alnum:]._+-]+$ ]]; then
+            echo "ERROR: Could not determine metamod version (got: '$latest')"
+            return 1
+        fi
+
+        if [ -d "$builds_dir/$latest" ] && [ -n "$(ls -A "$builds_dir/$latest")" ]; then
+            return 0
+        fi
     fi
 
     echo "Installing metamod: $latest"
@@ -140,8 +210,7 @@ install_metamod() {
     mkdir -p "$builds_dir"
     mv -f "$tmp_dir" "$builds_dir/$latest"
 
-    echo "$latest" > "/tmp/layer_latest.txt"
-    mv -f "/tmp/layer_latest.txt" "$latest_file"
+    write_layer_version "$latest_file" "$latest"
 }
 
 update_plugins() {
@@ -157,12 +226,12 @@ update_plugins() {
     install_github_release "Source2ZE"       "MultiAddonManager"        "steamrt3"                  "mam"
     install_github_release "zer0k-z"         "sql_mm"                   "linux"                     "sql_mm"
     install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
-    install_github_release "FemboyKZ"        "CleanerCS2"               "linux"                     "cleaner"
+    install_github_release "Source2ZE"       "CleanerCS2"               "steamrt3"                  "cleaner"
     install_github_release "Source2ZE"       "ServerListPlayersFix"     "linux"                     "listfix"
     install_github_release "SlynxCZ"         "BeamCrashFix_mm"          "linux"                     "beamfix"
     install_github_release "SlynxCZ"         "ConsoleSpamFix_mm"        "linux"                     "spamfix"
     install_github_release "Cruze03"         "GameBanFix"               "linux"                     "banfix"
-    install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
+    #install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
     install_github_release "FemboyKZ"        "mm-fkz-api"               "linux"                     "fkzapi"
     install_github_release "FemboyKZ"        "mm-cs2admin"              "linux"                     "cs2admin"
     install_github_release "FemboyKZ"        "mm-cs2menus"              "linux"                     "cs2menus"
