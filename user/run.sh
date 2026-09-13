@@ -139,7 +139,7 @@ sv_password ""
 rcon_password "$RCON_PASSWORD"
 sv_hibernate_when_empty true
 sv_hibernate_postgame_delay 5
-sv_tags "$TAGS"
+sv_tags "cs2kz, kz, kreedz, fkz, ckz, kzt, skz, vnl"
 mp_autokick 0
 kz_profile_clantag_enabled false
 exec fkz-print.cfg
