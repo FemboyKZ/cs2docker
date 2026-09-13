@@ -161,8 +161,8 @@ else
 fi
 
 install_cfg "CS2/motd.txt" "motd.txt"
-install_cfg "configs/gamemodes_custom.cfg" "cfg/gamemodes_custom.cfg"
-install_cfg "configs/gamemodes_custom.cfg" "cfg/gamemodes_custom_server.cfg"
+install_cfg "CS2/gamemodes_custom.cfg" "cfg/gamemodes_custom.cfg"
+install_cfg "CS2/gamemodes_custom.cfg" "cfg/gamemodes_custom_server.cfg"
 
 # FKZ
 install_cfg "CS2/fkz-print.cfg" "cfg/fkz-print.cfg"
