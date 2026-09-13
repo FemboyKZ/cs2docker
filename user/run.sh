@@ -194,6 +194,13 @@ install_cfg "CS2/fkz-api/core.cfg" "cfg/fkz-api/core.cfg"
 # install_cfg "CS2/fkz-logs.cfg" "cfg/fkz-logs.cfg"
 # install_cfg "CS2/fkz-tv.cfg" "cfg/fkz-tv.cfg"
 
+install_cfg "CS2/whitelist.txt" "cfg/cs2whitelist/whitelist.txt"
+install_cfg "SHARED/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
+install_cfg "SHARED/admin_groups.cfg" "cfg/cs2admin/admin_groups.cfg"
+#install_cfg "SHARED/admins.cfg" "cfg/cs2admin/admins.cfg"
+#install_cfg "SHARED/admin_overrides.cfg" "cfg/cs2admin/admin_overrides.cfg"
+install_cfg "SHARED/tags.cfg" "cfg/cs2admin/tags.cfg"
+
 # Core
 install_cfg "CS2/cs2menus/core.cfg" "cfg/cs2menus/core.cfg"
 install_cfg "CS2/cs2admin/core.cfg" "cfg/cs2admin/core.cfg"
@@ -249,14 +256,6 @@ modify_config "$cfg" "SteamApiKey" "$WS_APIKEY"
 
 cfg="$server_dir/game/csgo/cfg/cs2whitelist/core.cfg"
 modify_config "$cfg" "ApiKey" "$WS_APIKEY"
-
-# Mount configs that plugins write to at runtime, so they persist
-install_mount "configs/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
-install_mount "configs/admins.cfg" "cfg/cs2admin/admins.cfg"
-install_mount "configs/admin_overrides.cfg" "cfg/cs2admin/admin_overrides.cfg"
-install_mount "configs/admin_groups.cfg" "cfg/cs2admin/admin_groups.cfg"
-install_mount "configs/tags.cfg" "cfg/cs2admin/tags.cfg"
-install_mount "configs/whitelist" "cfg/cs2whitelist"
 
 # Mount logs
 install_mount "$ID/logs" "logs"
