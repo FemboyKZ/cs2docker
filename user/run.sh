@@ -56,6 +56,25 @@ install_mount() {
     ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
 }
 
+install_maplist() {
+    local src="/watchdog/layers/cfg/builds/$(cat /watchdog/layers/cfg/latest.txt)/CS2/maplists"
+    rm -rf "$server_dir/game/csgo/cfg/maplist.txt"
+    awk '{ sub(/\r$/, "") } NF' "${@/#/$src/}" | LC_ALL=C sort -u > "$server_dir/game/csgo/cfg/maplist.txt"
+}
+
+install_gamemodes() {
+    local src="/watchdog/layers/cfg/builds/$(cat /watchdog/layers/cfg/latest.txt)/CS2/gamemodes_server.txt"
+    rm -rf "$server_dir/game/csgo/gamemodes_server.txt"
+    awk -F: '
+        { sub(/\r$/, "") }
+        FNR == NR { if (NF) maps = maps "\t\t\t\t\"" (NF > 1 ? "workshop/" $2 "/" $1 : $1) "\" \"\"\n"; next }
+        skip && /}/ { skip = 0 }
+        !skip { print }
+        /"maps"/ { inmaps = 1 }
+        inmaps && /{/ { printf "%s", maps; skip = 1; inmaps = 0 }
+    ' "$server_dir/game/csgo/cfg/maplist.txt" "$src" > "$server_dir/game/csgo/gamemodes_server.txt"
+}
+
 install_cfg() {
     rm -rf "$server_dir/game/csgo/$2"
     mkdir -p "$(dirname "$server_dir/game/csgo/$2")"
@@ -99,7 +118,7 @@ install_layer "autorestart"
 #install_layer "test"
 
 # Maptest or FKZ plugins
-if [[ "${MAPTEST,,}" == "true" ]]; then
+if [[ "${MODE,,}" == "maptest" ]]; then
     install_layer "maptest"
     install_layer "wscleaner"
 fi
@@ -110,7 +129,7 @@ rm -rf "$server_dir/game/csgo/cfg/server.cfg"
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 # Create metaplugins.ini for metamod
-if [[ "${MAPTEST,,}" == "true" ]]; then
+if [[ "${MODE,,}" == "maptest" ]]; then
     echo "WSCLEANER addons/wscleaner/bin/wscleaner" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 fi
 
@@ -151,14 +170,19 @@ kz_profile_clantag_enabled false
 exec fkz-print.cfg
 EOF
 
-# Plugin configs
-if [[ ("$REGION" = "EU" && "$ID" = "fkz-7") || ("$REGION" = "NA" && "$ID" = "fkz-5") ]]; then
-    install_cfg "CS2/maplistmv.txt" "cfg/maplist.txt"
-elif [[ ("$REGION" = "EU" && "$ID" = "fkz-8") || ("$REGION" = "NA" && "$ID" = "fkz-6") ]]; then
-    install_cfg "CS2/maplisteasy.txt" "cfg/maplist.txt"
+# Install maplists
+if [[ "${MAPLIST,,}" == "all" ]]; then
+    install_maplist "comp.txt" "kz-global.txt" "kz-other.txt"
+elif [[ "${MAPLIST,,}" == "easy" ]]; then
+    install_cfg "CS2/maplists/kz-global-easy.txt" "cfg/maplist.txt"
+elif [[ "${MAPLIST,,}" == "global" ]]; then
+    install_cfg "CS2/maplists/kz-global.txt" "cfg/maplist.txt"
 else
-    install_cfg "CS2/maplist.txt" "cfg/maplist.txt"
+    install_maplist "kz-global.txt" "kz-other.txt"
 fi
+install_gamemodes
+
+# Install configs
 
 install_cfg "CS2/motd.txt" "motd.txt"
 install_cfg "CS2/gamemode_custom.cfg" "cfg/gamemode_custom.cfg"
