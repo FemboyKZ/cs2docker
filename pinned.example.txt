@@ -28,3 +28,4 @@
 # cs2whitelist 1.3.8
 # cs2rockthevote 1.7.3
 # autorestart 1.3.1
+# cfg 189737ac9c990d94d39f5ad2cf8839d905450c81

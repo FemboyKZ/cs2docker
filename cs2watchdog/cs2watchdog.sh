@@ -151,6 +151,52 @@ install_github_release_once() {
     install_github_release "$@"
 }
 
+install_github_repo() {
+    # <owner> <repo> <name>: snapshots the default branch as a layer versioned by commit sha
+    local owner="$1"
+    local repo="$2"
+    local name="$3"
+    local builds_dir="/watchdog/layers/$name/builds"
+    local latest_file="/watchdog/layers/$name/latest.txt"
+    local tmp_dir="/watchdog/layers/.tmp"
+
+    local ver
+    ver=$(read_pin "$name")
+    if [ -z "$ver" ]; then
+        ver=$(curl -fsSL \
+            ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
+            -H "Accept: application/vnd.github.sha" \
+            "https://api.github.com/repos/$owner/$repo/commits/HEAD") || ver=""
+        if ! [[ "$ver" =~ ^[[:alnum:]]+$ ]]; then
+            echo "ERROR: Could not get latest commit for $owner/$repo (got: '$ver')"
+            return 1
+        fi
+    fi
+
+    if [ -d "$builds_dir/$ver" ] && [ -n "$(ls -A "$builds_dir/$ver")" ]; then
+        write_layer_version "$latest_file" "$ver"
+        return 0
+    fi
+
+    echo "Installing $name: $ver"
+    rm -rf "$tmp_dir"
+    mkdir -p "$tmp_dir"
+    # The tarball wraps everything in a single <owner>-<repo>-<sha> directory
+    if ! curl -fsSL \
+        ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
+        "https://api.github.com/repos/$owner/$repo/tarball/$ver" \
+        | tar -xz --no-same-permissions --strip-components=1 -C "$tmp_dir"; then
+        echo "ERROR: Failed to download $owner/$repo at $ver"
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+
+    mkdir -p "$builds_dir"
+    mv -f "$tmp_dir" "$builds_dir/$ver"
+
+    write_layer_version "$latest_file" "$ver"
+}
+
 install_metamod() {
     local name="mm"
     local builds_dir="/watchdog/layers/$name/builds"
@@ -214,7 +260,7 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "beamfix" "spamfix" "banfix" "wscleaner" "fkzapi" "cs2admin" "cs2menus" "cs2whitelist" "cs2rockthevote" "autorestart")
+    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "beamfix" "spamfix" "banfix" "wscleaner" "fkzapi" "cs2admin" "cs2menus" "cs2whitelist" "cs2rockthevote" "autorestart" "cfg")
 
     rm -rf "/watchdog/layers/.tmp"
 
@@ -238,6 +284,9 @@ update_plugins() {
     install_github_release "FemboyKZ"        "mm-cs2whitelist"          "linux"                     "cs2whitelist"
     install_github_release "FemboyKZ"        "mm-cs2rockthevote"        "linux"                     "cs2rockthevote"
     install_github_release "FemboyKZ"        "cs2docker-autorestart"    "linux"                     "autorestart"
+
+    # Plugin configs
+    install_github_repo    "FemboyKZ"        "cfg"                                                  "cfg"
 
     # 16 plugins, twice a minute
     # 16 x 2 x 60 = 1920 / 5000

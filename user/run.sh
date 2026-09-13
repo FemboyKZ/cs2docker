@@ -24,7 +24,7 @@ rm -rf "$server_dir/game/csgo/addons"
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/dumps" "/mounts/$ID/configs" "/mounts/$ID/sqlite/cs2whitelist"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/dumps"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
@@ -56,13 +56,19 @@ install_mount() {
     ln -s "/mounts/$1" "$server_dir/game/csgo/$2"
 }
 
+install_cfg() {
+    rm -rf "$server_dir/game/csgo/$2"
+    mkdir -p "$(dirname "$server_dir/game/csgo/$2")"
+    cp "/watchdog/layers/cfg/builds/$(cat /watchdog/layers/cfg/latest.txt)/$1" "$server_dir/game/csgo/$2"
+}
+
 modify_config() {
     local file="$1"
     local key="$2"
     local value="$3"
     local escaped_value=$(printf '%s' "$value" | sed -e 's/[\x00-\x1F\x7F]/\\&/g' -e 's/[\/&]/\\&/g')
-    if grep -q "\"$key\"" "$file"; then
-        sed -i "s/\(\"$key\"[[:space:]]*\)\"[^\"]*\"/\1\"$escaped_value\"/" "$file"
+    if grep -Eq "^[[:space:]]*\"?$key\"?[[:space:]]" "$file"; then
+        sed -Ei "s/^([[:space:]]*\"?$key\"?[[:space:]]+)\"[^\"]*\"/\1\"$escaped_value\"/" "$file"
     else
         echo "Warning: Key '$key' not found in $file"
     fi
@@ -145,56 +151,95 @@ kz_profile_clantag_enabled false
 exec fkz-print.cfg
 EOF
 
-# Mount static configs we create/setup manually, so they persist across plugin updates.
+# Plugin configs
 if [[ ("$REGION" = "EU" && "$ID" = "fkz-7") || ("$REGION" = "NA" && "$ID" = "fkz-5") ]]; then
-    install_mount "configs/maplistmv.txt" "cfg/maplist.txt"
+    install_cfg "CS2/maplistmv.txt" "cfg/maplist.txt"
 elif [[ ("$REGION" = "EU" && "$ID" = "fkz-8") || ("$REGION" = "NA" && "$ID" = "fkz-6") ]]; then
-    install_mount "configs/maplisteasy.txt" "cfg/maplist.txt"
+    install_cfg "CS2/maplisteasy.txt" "cfg/maplist.txt"
 else
-    install_mount "configs/maplist.txt" "cfg/maplist.txt"
+    install_cfg "CS2/maplist.txt" "cfg/maplist.txt"
 fi
 
-install_mount "configs/gamemodes_server.txt" "gamemodes_server.txt"
-install_mount "configs/gamemodes_custom_server.cfg" "cfg/gamemodes_custom_server.cfg"
-install_mount "configs/fkz-print.cfg" "cfg/fkz-print.cfg"
+install_cfg "CS2/motd.txt" "motd.txt"
+install_cfg "configs/gamemodes_custom.cfg" "cfg/gamemodes_custom.cfg"
+install_cfg "configs/gamemodes_custom.cfg" "cfg/gamemodes_custom_server.cfg"
 
+# FKZ
+install_cfg "CS2/fkz-print.cfg" "cfg/fkz-print.cfg"
+install_cfg "CS2/fkz-api/core.cfg" "cfg/fkz-api/core.cfg"
+# install_cfg "CS2/fkz-logs.cfg" "cfg/fkz-logs.cfg"
+# install_cfg "CS2/fkz-tv.cfg" "cfg/fkz-tv.cfg"
+
+# Core
+install_cfg "CS2/cs2menus/core.cfg" "cfg/cs2menus/core.cfg"
+install_cfg "CS2/cs2admin/core.cfg" "cfg/cs2admin/core.cfg"
+install_cfg "CS2/cs2rtv/core.cfg" "cfg/cs2rtv/core.cfg"
+install_cfg "CS2/cs2whitelist/core.cfg" "cfg/cs2whitelist/core.cfg"
+
+# KZ
+install_cfg "CS2/cs2kz-server-config.txt" "cfg/cs2kz-server-config.txt"
+install_cfg "CS2/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
+
+# Misc
+install_cfg "CS2/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
+install_cfg "CS2/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
+
+# Fill in secrets in configs
+
+cfg="$server_dir/game/csgo/cfg/cs2admin/core.cfg"
+modify_config "$cfg" "ServerID" "$SB_SERVER_ID"
+modify_config "$cfg" "WebhookUrl" "$DC_ADMIN_WEBHOOK"
+modify_config "$cfg" "host" "$DB_HOST"
+modify_config "$cfg" "port" "$DB_PORT"
+modify_config "$cfg" "user" "$DB_USER"
+modify_config "$cfg" "pass" "$DB_PASS"
+modify_config "$cfg" "database" "$SB_DB_NAME"
+
+cfg="$server_dir/game/csgo/cfg/fkz-api/core.cfg"
+modify_config "$cfg" "api_key" "$FKZ_APIKEY"
+modify_config "$cfg" "server_ip" "$IP"
+modify_config "$cfg" "server_port" "$PORT"
+modify_config "$cfg" "db_host" "$DB_HOST"
+modify_config "$cfg" "db_port" "$DB_PORT"
+modify_config "$cfg" "db_user" "$DB_USER"
+modify_config "$cfg" "db_pass" "$DB_PASS"
+modify_config "$cfg" "db_database" "$GL_DB_NAME"
+
+cfg="$server_dir/game/csgo/cfg/cs2menus/core.cfg"
+modify_config "$cfg" "Host" "$DB_HOST"
+modify_config "$cfg" "Port" "$DB_PORT"
+modify_config "$cfg" "User" "$DB_USER"
+modify_config "$cfg" "Pass" "$DB_PASS"
+modify_config "$cfg" "Name" "$GL_DB_NAME"
+
+cfg="$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
+modify_config "$cfg" "host" "$DB_HOST"
+modify_config "$cfg" "port" "$DB_PORT"
+modify_config "$cfg" "user" "$DB_USER"
+modify_config "$cfg" "pass" "$DB_PASS"
+modify_config "$cfg" "database" "$GL_DB_NAME"
+modify_config "$cfg" "apiKey" "$CS2KZ_APIKEY"
+
+cfg="$server_dir/game/csgo/cfg/cs2rtv/core.cfg"
+modify_config "$cfg" "SteamApiKey" "$WS_APIKEY"
+
+cfg="$server_dir/game/csgo/cfg/cs2whitelist/core.cfg"
+modify_config "$cfg" "ApiKey" "$WS_APIKEY"
+
+# Mount configs that plugins write to at runtime, so they persist
 install_mount "configs/admins_simple.ini" "cfg/cs2admin/admins_simple.ini"
 install_mount "configs/admins.cfg" "cfg/cs2admin/admins.cfg"
 install_mount "configs/admin_overrides.cfg" "cfg/cs2admin/admin_overrides.cfg"
 install_mount "configs/admin_groups.cfg" "cfg/cs2admin/admin_groups.cfg"
 install_mount "configs/tags.cfg" "cfg/cs2admin/tags.cfg"
-install_mount "$ID/configs/cs2admin/core.cfg" "cfg/cs2admin/core.cfg"
-
-install_mount "$ID/configs/fkz-api/core.cfg" "cfg/fkz-api/core.cfg"
-
-install_mount "configs/menu/core.cfg" "cfg/cs2menus/core.cfg"
-install_mount "configs/rtv/core.cfg" "cfg/cs2rtv/core.cfg"
-
-install_mount "configs/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
-install_mount "configs/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager/multiaddonmanager.cfg"
-install_mount "configs/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
-
 install_mount "configs/whitelist" "cfg/cs2whitelist"
-install_mount "$ID/sqlite/cs2whitelist" "addons/cs2whitelist/db"
-
-# cs2kz cfg (STUPID TXT FILE)
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultMode" "Vanilla"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "defaultTimeLimit" "1440.0"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "chatPrefix" "{orchid}FKZ {grey}|{default}"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "overridePlayerChat" "false"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "driver" "mysql"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "host" "$DB_HOST"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "port" "$DB_PORT"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "database" "$GL_DB_NAME"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "apiKey" "$CS2KZ_APIKEY"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "user" "$DB_USER"
-modify_config "$server_dir/game/csgo/cfg/cs2kz-server-config.txt" "pass" "$DB_PASS"
 
 # Mount logs
 install_mount "$ID/logs" "logs"
 install_mount "$ID/logs/kz" "addons/cs2kz/logs"
 install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "$ID/queue.txt" "addons/cs2admin/queue.txt"
+
 # Mount replays
 install_mount "kzreplays" "kzreplays"
 
@@ -202,10 +247,7 @@ install_mount "kzreplays" "kzreplays"
 rm -rf "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 ln -s "/mounts/$ID/workshop" "$server_dir/game/bin/linuxsteamrt64/steamapps/workshop"
 
-# Write MOTD and WebAPI key
-rm -rf "$server_dir/game/csgo/motd.txt"
-echo "$MOTD" > "$server_dir/game/csgo/motd.txt"
-
+# Write WebAPI key
 rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
 echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
 
