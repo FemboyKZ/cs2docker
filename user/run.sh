@@ -105,9 +105,7 @@ install_layer "sql_mm"
 install_layer "ccvar"
 install_layer "cleaner"
 install_layer "listfix"
-install_layer "beamfix"
-install_layer "spamfix"
-install_layer "banfix"
+install_layer "gamefix"
 install_layer "fkzapi"
 install_layer "cs2admin"
 install_layer "cs2menus"
@@ -115,24 +113,12 @@ install_layer "cs2whitelist"
 install_layer "cs2rockthevote"
 install_layer "autorestart"
 
-#install_layer "test"
-
-# Maptest or FKZ plugins
-if [[ "${MODE,,}" == "maptest" ]]; then
-    install_layer "maptest"
-    install_layer "wscleaner"
-fi
-
 # Cleanup cfg files before installing our own, to prevent stale configs from previous versions.
 rm -rf "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 rm -rf "$server_dir/game/csgo/cfg/server.cfg"
 find "$server_dir/game/csgo/addons/metamod/" -type f -name "*.vdf" -exec rm -f {} +
 
 # Create metaplugins.ini for metamod
-if [[ "${MODE,,}" == "maptest" ]]; then
-    echo "WSCLEANER addons/wscleaner/bin/wscleaner" > "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
-fi
-
 cat <<EOF >> "$server_dir/game/csgo/addons/metamod/metaplugins.ini"
 ACCEL addons/AcceleratorCS2/AcceleratorCS2
 KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
