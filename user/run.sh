@@ -139,16 +139,13 @@ KZ addons/cs2kz/bin/linuxsteamrt64/cs2kz
 CLEANER addons/cleanercs2/cleanercs2
 SQLMM addons/sql_mm/bin/linuxsteamrt64/sql_mm
 MAM addons/multiaddonmanager/bin/multiaddonmanager
-CCVAR addons/client_cvar_value/client_cvar_value
 LISTFIX addons/serverlistplayersfix_mm/bin/linuxsteamrt64/serverlistplayersfix_mm
-BANFIX addons/gamebanfix/bin/linuxsteamrt64/gamebanfix
 FKZ addons/fkz-api/bin/linuxsteamrt64/fkz-api
 MENU addons/cs2menus/bin/linuxsteamrt64/cs2menus
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
-BEAM addons/beam_crash_fix/bin/linuxsteamrt64/beam_crash_fix
-SPAM addons/console_spam_fix/bin/linuxsteamrt64/console_spam_fix
+FIX addons/game_fixes/bin/linuxsteamrt64/game_fixes
 ;MENUTEST addons/cs2menus_consumer/bin/linuxsteamrt64/cs2menus_consumer
 EOF
 
@@ -214,6 +211,7 @@ install_cfg "CS2/multiaddonmanager/multiaddonmanager.cfg" "cfg/multiaddonmanager
 # Misc
 install_cfg "CS2/AcceleratorCS2/config.json" "addons/AcceleratorCS2/config.json"
 install_cfg "CS2/cleanercs2/config.cfg" "addons/cleanercs2/config.cfg"
+install_cfg "CS2/game_fixes/game_fixes.ini" "addons/game_fixes/game_fixes.ini"
 
 # Fill in secrets in configs
 

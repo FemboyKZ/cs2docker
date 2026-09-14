@@ -260,23 +260,21 @@ install_metamod() {
 }
 
 update_plugins() {
-    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "ccvar" "cleaner" "listfix" "beamfix" "spamfix" "banfix" "wscleaner" "fkzapi" "cs2admin" "cs2menus" "cs2whitelist" "cs2rockthevote" "autorestart" "cfg")
+    local layer_names=("mm" "accel" "kz" "mam" "sql_mm" "cleaner" "listfix" "gamefix" "fkzapi" "cs2admin" "cs2menus" "cs2whitelist" "cs2rockthevote" "autorestart" "cfg")
 
     rm -rf "/watchdog/layers/.tmp"
 
     install_metamod
 
     # MM Plugins
-    install_github_release "Source2ZE"       "AcceleratorCS2"           "addon"                     "accel"
+    install_github_release "Source2ZE"       "AcceleratorCS2"           "steamrt3"                  "accel"
     install_github_release "KZGlobalTeam"    "cs2kz-metamod"            'linux-master\.tar\.gz$'    "kz"
     install_github_release "Source2ZE"       "MultiAddonManager"        "steamrt3"                  "mam"
     install_github_release "zer0k-z"         "sql_mm"                   "linux"                     "sql_mm"
-    install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
+    #install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
     install_github_release "Source2ZE"       "CleanerCS2"               "steamrt3"                  "cleaner"
-    install_github_release "Source2ZE"       "ServerListPlayersFix"     "linux"                     "listfix"
-    install_github_release "SlynxCZ"         "BeamCrashFix_mm"          "linux"                     "beamfix"
-    install_github_release "SlynxCZ"         "ConsoleSpamFix_mm"        "linux"                     "spamfix"
-    install_github_release "Cruze03"         "GameBanFix"               "linux"                     "banfix"
+    install_github_release "Source2ZE"       "ServerListPlayersFix"     "steamrt3"                  "listfix"
+    install_github_release "SlynxCZ"         "GameFixes_mm"             "linux"                     "gamefix"
     #install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
     install_github_release "FemboyKZ"        "mm-fkz-api"               "linux"                     "fkzapi"
     install_github_release "FemboyKZ"        "mm-cs2admin"              "linux"                     "cs2admin"
