@@ -246,6 +246,7 @@ install_mount "$ID/logs" "logs"
 install_mount "$ID/logs/kz" "addons/cs2kz/logs"
 install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
 install_mount "$ID/queue.txt" "addons/cs2admin/queue.txt"
+install_mount "$ID/admins_backup.txt" "addons/cs2admin/admins_backup.txt"
 
 # Mount replays
 install_mount "kzreplays" "kzreplays"
