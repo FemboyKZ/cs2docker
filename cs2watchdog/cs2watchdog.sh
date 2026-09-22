@@ -18,8 +18,7 @@ read_pin() {
     echo "$pin"
 }
 
-# Point a layer at a version. Skips the write when it already says that, so the
-# file's contents and mtime stay put and servers don't see a phantom update.
+# Point a layer at a version.
 write_layer_version() {
     local latest_file="$1" ver="$2"
     if [ -f "$latest_file" ] && [ "$(cat "$latest_file")" = "$ver" ]; then
@@ -130,16 +129,13 @@ install_github_release() {
 }
 
 install_github_release_once() {
-    # Same args as install_github_release: <owner> <repo> <asset_pattern> <name>
-    # For plugins that don't need updating: if the layer is already installed
-    # (its build dir exists and has contents) this returns immediately WITHOUT
-    # touching GitHub, so the release is fetched exactly once instead of every loop.
+    # <owner> <repo> <asset_pattern> <name>
+    # For plugins that don't need updating: if the layer is already installed this returns immediately.
     local name="$4"
     local builds_dir="/watchdog/layers/$name/builds"
     local latest_file="/watchdog/layers/$name/latest.txt"
 
-    # A pin overrides whatever happens to be installed, and install_github_release
-    # already short-circuits without hitting GitHub once the pinned build is there.
+    # A pin overrides whatever happens to be installed.
     if [ -z "$(read_pin "$name")" ] && [ -f "$latest_file" ]; then
         local current
         current=$(cat "$latest_file")
