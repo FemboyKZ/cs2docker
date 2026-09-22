@@ -9,7 +9,6 @@ services:
     env_file:
       - .env.global.example # Change to your actual global env file
     volumes:
-      - ./layers:/layers
       - ./watchdog:/watchdog
   cs2server1:
     image: cs2server
