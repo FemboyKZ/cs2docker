@@ -7,7 +7,7 @@ services:
     tty: true
     stdin_open: true
     env_file:
-      - .env.global.example # Change to your actual global env file
+      - example.global.env # Change to your actual global env file
     volumes:
       - ./watchdog:/watchdog
   cs2server1:
@@ -23,8 +23,8 @@ services:
         max-file: "3"
     network_mode: host
     env_file:
-      - .env.global.example # Change to your actual global env file
-      - .env.example # Change to your actual env file
+      - example.global.env # Change to your actual global env file
+      - example1.env       # Change to your actual env file
     volumes:
       - ./watchdog:/watchdog
       - ./layers:/layers

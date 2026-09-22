@@ -2,6 +2,6 @@ docker-compose.*
 layers/*
 mounts/*
 watchdog/*
-.env*
-!.env*.example
+*.env
+!example*.env
 .vscode/*
