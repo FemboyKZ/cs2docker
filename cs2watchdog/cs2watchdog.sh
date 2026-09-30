@@ -277,7 +277,7 @@ update_plugins() {
     install_github_release "FemboyKZ"        "mm-cs2menus"              "linux"                     "cs2menus"
     install_github_release "FemboyKZ"        "mm-cs2whitelist"          "linux"                     "cs2whitelist"
     install_github_release "FemboyKZ"        "mm-cs2rockthevote"        "linux"                     "cs2rockthevote"
-    install_github_release "FemboyKZ"        "cs2docker-autorestart"    "linux"                     "autorestart"
+    install_github_release "FemboyKZ"        "cs2docker-autorestart"    "steamrt3"                  "autorestart"
 
     # Plugin configs
     install_github_repo    "FemboyKZ"        "cfg"                                                  "cfg"
