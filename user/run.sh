@@ -111,7 +111,7 @@ install_layer "cs2admin"
 install_layer "cs2menus"
 install_layer "cs2whitelist"
 install_layer "cs2rockthevote"
-install_layer "cs2ws"
+install_layer "cs2dressup"
 install_layer "autorestart"
 
 # Cleanup cfg files before installing our own, to prevent stale configs from previous versions.
@@ -132,7 +132,7 @@ MENU addons/cs2menus/bin/linuxsteamrt64/cs2menus
 ADMIN addons/cs2admin/bin/linuxsteamrt64/cs2admin
 RTV addons/cs2rockthevote/bin/linuxsteamrt64/cs2rockthevote
 RESTART addons/autorestart/bin/linuxsteamrt64/autorestart
-WS addons/cs2weaponskins/bin/linuxsteamrt64/cs2weaponskins
+DRESSUP addons/cs2dressup/bin/linuxsteamrt64/cs2dressup
 FIX addons/game_fixes/bin/linuxsteamrt64/game_fixes
 ;MENUTEST addons/cs2menus_consumer/bin/linuxsteamrt64/cs2menus_consumer
 EOF
@@ -192,7 +192,7 @@ install_cfg "CS2/cs2menus/core.cfg" "cfg/cs2menus/core.cfg"
 install_cfg "CS2/cs2admin/core.cfg" "cfg/cs2admin/core.cfg"
 install_cfg "CS2/cs2rtv/core.cfg" "cfg/cs2rtv/core.cfg"
 install_cfg "CS2/cs2whitelist/core.cfg" "cfg/cs2whitelist/core.cfg"
-install_cfg "CS2/cs2ws/core.cfg" "cfg/cs2ws/core.cfg"
+install_cfg "CS2/cs2dressup/core.cfg" "cfg/cs2dressup/core.cfg"
 
 # KZ
 install_cfg "CS2/cs2kz-server-config.txt" "cfg/cs2kz-server-config.txt"
@@ -245,7 +245,7 @@ modify_config "$cfg" "SteamApiKey" "$WS_APIKEY"
 cfg="$server_dir/game/csgo/cfg/cs2whitelist/core.cfg"
 modify_config "$cfg" "ApiKey" "$WS_APIKEY"
 
-cfg="$server_dir/game/csgo/cfg/cs2ws/core.cfg"
+cfg="$server_dir/game/csgo/cfg/cs2dressup/core.cfg"
 modify_config "$cfg" "Host" "$DB_HOST"
 modify_config "$cfg" "Port" "$DB_PORT"
 modify_config "$cfg" "User" "$DB_USER"
