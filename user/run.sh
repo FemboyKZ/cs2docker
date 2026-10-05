@@ -153,7 +153,7 @@ sv_hibernate_postgame_delay 5
 sv_tags "cs2kz, kz, kreedz, fkz, ckz, kzt, skz, vnl"
 mp_autokick 0
 kz_profile_clantag_enabled false
-kz_ac_autokick true
+kz_ac_autokick 1
 exec fkz-print.cfg
 EOF
 
