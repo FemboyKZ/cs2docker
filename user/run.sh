@@ -24,7 +24,8 @@ rm -rf "$server_dir/game/csgo/addons"
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/dumps"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/logs/dressup" "/mounts/$ID/logs/rtv" "/mounts/$ID/logs/admin" "/mounts/$ID/logs/menus" "/mounts/$ID/logs/whitelist"
+mkdir -p "/mounts/$ID/dumps" "/mounts/$ID/minidumps"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
 # Helper functions
@@ -255,7 +256,18 @@ modify_config "$cfg" "Database" "$GL_DB_NAME"
 # Mount logs
 install_mount "$ID/logs" "logs"
 install_mount "$ID/logs/kz" "addons/cs2kz/logs"
+install_mount "$ID/logs/dressup" "addons/cs2dressup/logs"
+install_mount "$ID/logs/rtv" "addons/cs2rtv/logs"
+install_mount "$ID/logs/admin" "addons/cs2admin/logs"
+install_mount "$ID/logs/menus" "addons/cs2menus/logs"
+install_mount "$ID/logs/whitelist" "addons/cs2whitelist/logs"
+
+# Mount dumps
+rm -rf "/tmp/dumps"
+ln -s "/mounts/$ID/minidumps" "/tmp/dumps"
 install_mount "$ID/dumps" "addons/AcceleratorCS2/dumps"
+
+# Mount extras
 install_mount "$ID/queue.txt" "addons/cs2admin/queue.txt"
 install_mount "$ID/admins_backup.txt" "addons/cs2admin/admins_backup.txt"
 
