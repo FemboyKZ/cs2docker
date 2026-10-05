@@ -8,7 +8,7 @@ RUN printf '%s\n' \
 
 RUN for list in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do \
     [ -f "$list" ] || continue; \
-    sed -i -E 's@^[[:space:]]*deb(-src)?[[:space:]].*deb\.debian\.org/debian-security.*@# & (disabled: bullseye EOL)@' "$list"; \
+    sed -i 's@deb\.debian\.org/debian-security@archive.debian.org/debian-security@' "$list"; \
 done
 
 RUN apt-get update -y \
