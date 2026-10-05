@@ -1,4 +1,4 @@
-FROM registry.gitlab.steamos.cloud/steamrt/sniper/sdk
+FROM registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest-container-runtime-depot
 
 RUN printf '%s\n' \
     'Acquire::Check-Valid-Until "false";' \
