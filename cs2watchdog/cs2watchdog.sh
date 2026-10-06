@@ -276,7 +276,7 @@ update_plugins() {
     install_github_release "FemboyKZ"        "mm-cs2admin"              "steamrt3"                  "cs2admin"
     install_github_release "FemboyKZ"        "mm-cs2menus"              "linux"                     "cs2menus"
     install_github_release "FemboyKZ"        "mm-cs2whitelist"          "linux"                     "cs2whitelist"
-    install_github_release "FemboyKZ"        "mm-cs2rockthevote"        "linux"                     "cs2rockthevote"
+    install_github_release "FemboyKZ"        "mm-cs2rockthevote"        "steamrt3"                  "cs2rockthevote"
     install_github_release "FemboyKZ"        "cs2docker-autorestart"    "steamrt3"                  "autorestart"
     #install_github_release "jvnipers"        "cs2dressup"               "steamrt3"                  "cs2dressup"
 
