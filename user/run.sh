@@ -24,7 +24,7 @@ rm -rf "$server_dir/game/csgo/addons"
 # Make sure necessary directories exist
 mkdir -p "$server_dir/game/csgo/addons" "$server_dir/game/csgo/cfg" "$server_dir/game/csgo/tmp"
 mkdir -p "/mounts/$ID/workshop" "/mounts/kzreplays" "/mounts/$ID" "/mounts/configs"
-mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/kz" "/mounts/$ID/logs/dressup" "/mounts/$ID/logs/rtv" "/mounts/$ID/logs/admin" "/mounts/$ID/logs/menus" "/mounts/$ID/logs/whitelist"
+mkdir -p "/mounts/$ID/logs" "/mounts/$ID/logs/game" "/mounts/$ID/logs/kz" "/mounts/$ID/logs/dressup" "/mounts/$ID/logs/rtv" "/mounts/$ID/logs/admin" "/mounts/$ID/logs/menus" "/mounts/$ID/logs/whitelist" "/mounts/$ID/logs/fkz-api"
 mkdir -p "/mounts/$ID/dumps" "/mounts/$ID/minidumps"
 mkdir -p "$server_dir/game/bin/linuxsteamrt64/steamapps"
 
@@ -207,7 +207,7 @@ install_cfg "CS2/game_fixes/game_fixes.ini" "addons/game_fixes/game_fixes.ini"
 # Fill in secrets in configs
 
 cfg="$server_dir/game/csgo/cfg/cs2admin/core.cfg"
-modify_config "$cfg" "ServerID" "$SB_SERVER_ID"
+modify_config "$cfg" "ServerId" "$SB_SERVER_ID"
 modify_config "$cfg" "WebhookUrl" "$DC_ADMIN_WEBHOOK"
 modify_config "$cfg" "Host" "$DB_HOST"
 modify_config "$cfg" "Port" "$DB_PORT"
@@ -230,7 +230,7 @@ modify_config "$cfg" "Host" "$DB_HOST"
 modify_config "$cfg" "Port" "$DB_PORT"
 modify_config "$cfg" "User" "$DB_USER"
 modify_config "$cfg" "Pass" "$DB_PASS"
-modify_config "$cfg" "Name" "$GL_DB_NAME"
+modify_config "$cfg" "Database" "$GL_DB_NAME"
 
 cfg="$server_dir/game/csgo/cfg/cs2kz-server-config.txt"
 modify_config "$cfg" "host" "$DB_HOST"
@@ -244,7 +244,12 @@ cfg="$server_dir/game/csgo/cfg/cs2rtv/core.cfg"
 modify_config "$cfg" "SteamApiKey" "$WS_APIKEY"
 
 cfg="$server_dir/game/csgo/cfg/cs2whitelist/core.cfg"
-modify_config "$cfg" "ApiKey" "$WS_APIKEY"
+modify_config "$cfg" "SteamApiKey" "$WS_APIKEY"
+modify_config "$cfg" "Host" "$DB_HOST"
+modify_config "$cfg" "Port" "$DB_PORT"
+modify_config "$cfg" "User" "$DB_USER"
+modify_config "$cfg" "Pass" "$DB_PASS"
+modify_config "$cfg" "Database" "$GL_DB_NAME"
 
 cfg="$server_dir/game/csgo/cfg/cs2dressup/core.cfg"
 modify_config "$cfg" "Host" "$DB_HOST"
@@ -254,13 +259,14 @@ modify_config "$cfg" "Pass" "$DB_PASS"
 modify_config "$cfg" "Database" "$GL_DB_NAME"
 
 # Mount logs
-install_mount "$ID/logs" "logs"
+install_mount "$ID/logs/game" "logs"
 install_mount "$ID/logs/kz" "addons/cs2kz/logs"
 install_mount "$ID/logs/dressup" "addons/cs2dressup/logs"
 install_mount "$ID/logs/rtv" "addons/cs2rtv/logs"
 install_mount "$ID/logs/admin" "addons/cs2admin/logs"
 install_mount "$ID/logs/menus" "addons/cs2menus/logs"
 install_mount "$ID/logs/whitelist" "addons/cs2whitelist/logs"
+install_mount "$ID/logs/fkz-api" "addons/fkz-api/logs"
 
 # Mount dumps
 rm -rf "/tmp/dumps"
