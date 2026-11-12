@@ -289,4 +289,4 @@ rm -rf "$server_dir/game/csgo/webapi_authkey.txt"
 echo "$WS_APIKEY" > "$server_dir/game/csgo/webapi_authkey.txt"
 
 # Run the server.
-"$server_dir/game/cs2.sh" -dedicated -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +host_workshop_map "$WS_MAP" +exec server.cfg -maxplayers 64 -nohltv
+"$server_dir/game/cs2.sh" -dedicated -disable_workshop_command_filtering -ip "$IP" -port "$PORT" -authkey "$WS_APIKEY" +sv_setsteamaccount "$GSLT" +map "$MAP" +host_workshop_map "$WS_MAP" +exec server.cfg -maxplayers 64 -nohltv -console -condebug
