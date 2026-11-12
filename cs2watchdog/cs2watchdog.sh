@@ -270,7 +270,7 @@ update_plugins() {
     #install_github_release "komashchenko"    "ClientCvarValue"          "linux"                     "ccvar"
     install_github_release "Source2ZE"       "CleanerCS2"               "steamrt3"                  "cleaner"
     install_github_release "Source2ZE"       "ServerListPlayersFix"     "steamrt3"                  "listfix"
-    install_github_release "SlynxCZ"         "GameFixes_mm"             "linux"                     "gamefix"
+    install_github_release "jvnipers"        "GameFixes_mm"             "linux"                     "gamefix"
     #install_github_release "zer0k-z"         "wscleaner"                "linux"                     "wscleaner"
     install_github_release "FemboyKZ"        "mm-fkz-api"               "steamrt3"                  "fkzapi"
     install_github_release "FemboyKZ"        "mm-cs2admin"              "steamrt3"                  "cs2admin"
