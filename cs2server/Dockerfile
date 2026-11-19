@@ -1,15 +1,4 @@
-FROM registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest-container-runtime-depot
-
-RUN printf '%s\n' \
-    'Acquire::Check-Valid-Until "false";' \
-    'Acquire::AllowReleaseInfoChange::Suite "true";' \
-    'Acquire::AllowReleaseInfoChange::Version "true";' \
-    > /etc/apt/apt.conf.d/99-ci-ignore-expired-release
-
-RUN for list in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do \
-    [ -f "$list" ] || continue; \
-    sed -i 's@deb\.debian\.org/debian-security@archive.debian.org/debian-security@' "$list"; \
-done
+FROM registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends --no-install-suggests \
